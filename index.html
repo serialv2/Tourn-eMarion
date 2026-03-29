@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -34,6 +35,7 @@ input{width:100%;padding:10px;margin-top:5px;margin-bottom:10px}
 <button id="endBtn" class="secondary">Fin</button>
 <button id="resetBtn" class="secondary">Reset</button>
 <button id="exportBtn" class="secondary">Export Excel</button>
+<button id="shareBtn" class="secondary">Partager tournée GPS</button>
 
 <h3 id="total">Total : 0 km</h3>
 
@@ -175,6 +177,38 @@ a.download="tournee.csv"
 a.click()
 }
 
+document.getElementById("shareBtn").onclick=async()=>{
+if(stops.length===0){
+alert("Aucun arrêt à partager")
+return
+}
+
+let addresses=stops
+.map(s=>s.address)
+.filter(a=>a&&a.trim()!="")
+
+if(addresses.length===0){
+alert("Aucune adresse disponible pour le GPS")
+return
+}
+
+let base="https://www.google.com/maps/dir/"
+let path=addresses.map(a=>encodeURIComponent(a)).join("/")
+let url=base+path
+
+if(navigator.share){
+try{
+await navigator.share({
+title:"Tournée infirmière",
+text:"Voici la tournée à ouvrir dans le GPS",
+url:url
+})
+}catch(e){}
+}else{
+window.open(url,"_blank")
+}
+}
+
 document.getElementById("tourName").addEventListener("input",updateTourName)
 
 loadData()
@@ -183,7 +217,6 @@ render()
 
 </body>
 </html>
-
 
   
     
