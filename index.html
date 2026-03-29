@@ -1,714 +1,145 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f172a" />
-  <title>Kilomètres de tournée</title>
-  <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --primary: #0f172a;
-      --primary-text: #ffffff;
-      --secondary: #e2e8f0;
-      --danger-bg: #fef2f2;
-      --danger-text: #b91c1c;
-      --success-bg: #ecfeff;
-      --success-text: #155e75;
-      --shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-      --radius: 18px;
-    }
-
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      -webkit-font-smoothing: antialiased;
-    }
-
-    .wrap {
-      max-width: 920px;
-      margin: 0 auto;
-      padding: 18px;
-    }
-
-    h1 {
-      font-size: 32px;
-      line-height: 1.1;
-      margin: 8px 0 8px;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      margin: 0 0 18px;
-      font-size: 16px;
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .grid {
-      display: grid;
-      gap: 12px;
-    }
-
-    .stats {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .stat {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 6px;
-    }
-
-    .stat-value {
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    input {
-      width: 100%;
-      padding: 14px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      font-size: 16px;
-      outline: none;
-      background: #fff;
-    }
-
-    .buttons {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    button {
-      border: 0;
-      border-radius: 16px;
-      padding: 15px 16px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    button:disabled {
-      opacity: 0.55;
-      cursor: not-allowed;
-    }
-
-    .btn-primary { background: var(--primary); color: var(--primary-text); }
-    .btn-secondary { background: var(--secondary); color: var(--text); }
-    .btn-light { background: #fff; color: var(--text); border: 1px solid var(--border); }
-
-    .info, .error {
-      border-radius: 14px;
-      padding: 12px 14px;
-      font-size: 14px;
-      margin-top: 12px;
-    }
-
-    .info {
-      background: var(--success-bg);
-      color: var(--success-text);
-    }
-
-    .error {
-      background: var(--danger-bg);
-      color: var(--danger-text);
-    }
-
-    .table {
-      margin-top: 14px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 1.1fr 0.8fr 0.8fr;
-      gap: 8px;
-      padding: 12px 14px;
-      border-top: 1px solid var(--border);
-      align-items: center;
-      font-size: 14px;
-    }
-
-    .row:first-child { border-top: 0; }
-    .head { background: #f8fafc; font-weight: 700; }
-    .muted { color: var(--muted); }
-
-    .history-item {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-      margin-top: 12px;
-    }
-
-    .history-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      gap: 10px;
-    }
-
-    .badge {
-      background: #eef2ff;
-      color: #3730a3;
-      padding: 8px 10px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-      white-space: nowrap;
-    }
-
-    .small-btn {
-      background: #fff;
-      border: 1px solid var(--border);
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 13px;
-    }
-
-    .history-stops {
-      margin-top: 12px;
-      display: grid;
-      gap: 8px;
-    }
-
-    .history-stop {
-      background: #f8fafc;
-      border-radius: 12px;
-      padding: 10px 12px;
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-    }
-
-    .footer-note {
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 8px;
-      line-height: 1.5;
-    }
-
-    @media (min-width: 720px) {
-      .buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kilomètres tournée infirmière</title>
+<style>
+body{font-family:Arial;margin:20px;background:#f5f5f5}
+.card{background:white;padding:15px;border-radius:10px;margin-bottom:15px}
+button{padding:12px;border:0;border-radius:8px;margin:4px;font-weight:bold}
+.primary{background:#111;color:white}
+.secondary{background:#ddd}
+input{width:100%;padding:10px;margin-top:5px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Kilomètres de tournée</h1>
-    <p class="subtitle">Application simple pour enregistrer la distance par la route entre chaque arrêt.</p>
 
-    <div class="card">
-      <label for="tourName">Nom de la tournée</label>
-      <input id="tourName" type="text" placeholder="Ex : matin, après-midi, secteur A" />
+<div class="card">
+<h2>Tournée</h2>
 
-      <label for="patientName" style="margin-top:12px">Nom du patient</label>
-      <input id="patientName" type="text" placeholder="Nom du patient" />
+<label>Nom tournée</label>
+<input id="tourName">
 
-      <label for="patientAddress" style="margin-top:12px">Adresse (auto si vide)</label>
-      <input id="patientAddress" type="text" placeholder="Adresse automatique GPS" />
+<label>Patient</label>
+<input id="patientName">
 
-      <div class="buttons">
-        <button id="startBtn" class="btn-primary">Démarrer la tournée</button>
-        <button id="stopBtn" class="btn-secondary" disabled>Enregistrer un arrêt</button>
-        <button id="endBtn" class="btn-light" disabled>Fin de tournée</button>
-        <button id="resetBtn" class="btn-light">Réinitialiser</button>
-        <button id="exportDayBtn" class="btn-light">Exporter la tournée</button>
-        <button id="exportHistoryBtn" class="btn-light">Exporter l'historique</button>
-      </div>
+<label>Adresse</label>
+<input id="patientAddress">
 
-      <div id="message"></div>
+<button id="startBtn" class="primary">Démarrer</button>
+<button id="stopBtn" class="secondary">Arrêt</button>
+<button id="endBtn" class="secondary">Fin</button>
+<button id="resetBtn" class="secondary">Reset</button>
+<button id="exportBtn" class="secondary">Export Excel</button>
 
-      <div class="grid stats" style="margin-top: 14px;">
-        <div class="stat">
-          <div class="stat-label">Statut</div>
-          <div class="stat-value" id="statusValue">À l'arrêt</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Départ</div>
-          <div class="stat-value" id="startValue">-</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Arrêts</div>
-          <div class="stat-value" id="stopsValue">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">Total</div>
-          <div class="stat-value" id="totalValue">0.00 km</div>
-        </div>
-      </div>
+<h3 id="total">Total : 0 km</h3>
 
-      <div class="table">
-        <div class="row head">
-          <div>Patient / Arrêt</div>
-          <div>Heure</div>
-          <div>Distance</div>
-        </div>
-        <div id="stopsTable"></div>
-      </div>
+<div id="table"></div>
+</div>
 
-      <p class="footer-note">
-        Le calcul se fait par la route grâce à un service d'itinéraire. Une connexion internet et l'autorisation GPS sont nécessaires.
-      </p>
-    </div>
+<script>
+let running=false
+let lastPoint=null
+let stops=[]
 
-    <div class="card">
-      <h2 style="margin: 0 0 10px; font-size: 22px;">Historique</h2>
-      <div id="historyList" class="muted">Aucune tournée enregistrée pour l'instant.</div>
-    </div>
-  </div>
+function getPosition(){
+return new Promise((res,rej)=>{
+navigator.geolocation.getCurrentPosition(p=>{
+res({lat:p.coords.latitude,lon:p.coords.longitude})
+},rej,{enableHighAccuracy:true})
+})
+}
 
-  <script>
-    const STORAGE_ACTIVE = "tournee-active-html";
-    const STORAGE_HISTORY = "tournee-history-html";
+async function roadDistance(a,b){
+let url=`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false`
+let r=await fetch(url)
+let j=await r.json()
+return j.routes[0].distance/1000
+}
 
-    const state = {
-      tourName: "",
-      isRunning: false,
-      currentPoint: null,
-      startedAt: null,
-      stops: [],
-      history: []
-    };
+async function reverse(lat,lon){
+try{
+let r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+let j=await r.json()
+return j.display_name||""
+}catch{return ""}
+}
 
-    const els = {
-      tourName: document.getElementById("tourName"),
-      patientName: document.getElementById("patientName"),
-      patientAddress: document.getElementById("patientAddress"),
-      startBtn: document.getElementById("startBtn"),
-      stopBtn: document.getElementById("stopBtn"),
-      endBtn: document.getElementById("endBtn"),
-      resetBtn: document.getElementById("resetBtn"),
-      exportDayBtn: document.getElementById("exportDayBtn"),
-      exportHistoryBtn: document.getElementById("exportHistoryBtn"),
-      message: document.getElementById("message"),
-      statusValue: document.getElementById("statusValue"),
-      startValue: document.getElementById("startValue"),
-      stopsValue: document.getElementById("stopsValue"),
-      totalValue: document.getElementById("totalValue"),
-      stopsTable: document.getElementById("stopsTable"),
-      historyList: document.getElementById("historyList")
-    };
+function render(){
+let t=0
+let html=""
+stops.forEach(s=>{
+t+=s.km
+html+=`<div class="row">
+<div>
+<b>${s.patient}</b><br>
+<small>${s.address}</small>
+</div>
+<div>${s.km.toFixed(2)} km</div>
+</div>`
+})
+document.getElementById("table").innerHTML=html
 
-    function saveActive() {
-      localStorage.setItem(STORAGE_ACTIVE, JSON.stringify({
-        tourName: state.tourName,
-        isRunning: state.isRunning,
-        currentPoint: state.currentPoint,
-        startedAt: state.startedAt,
-        stops: state.stops
-      }));
-    }
+document.getElementById("total").innerText="Total : "+t.toFixed(2)+" km"
+}
 
-    function saveHistory() {
-      localStorage.setItem(STORAGE_HISTORY, JSON.stringify(state.history));
-    }
+document.getElementById("startBtn").onclick=async()=>{
+lastPoint=await getPosition()
+running=true
+}
 
-    function loadData() {
-      const active = localStorage.getItem(STORAGE_ACTIVE);
-      const history = localStorage.getItem(STORAGE_HISTORY);
+document.getElementById("stopBtn").onclick=async()=>{
+if(!running) return
 
-      if (active) {
-        const parsed = JSON.parse(active);
-        state.tourName = parsed.tourName || "";
-        state.isRunning = !!parsed.isRunning;
-        state.currentPoint = parsed.currentPoint || null;
-        state.startedAt = parsed.startedAt || null;
-        state.stops = parsed.stops || [];
-      }
+let p=await getPosition()
+let km=await roadDistance(lastPoint,p)
 
-      if (history) {
-        state.history = JSON.parse(history);
-      }
-    }
+let patient=document.getElementById("patientName").value||"Patient"
+let addr=document.getElementById("patientAddress").value
 
-    function showMessage(text, type = "info") {
-      if (!text) {
-        els.message.innerHTML = "";
-        return;
-      }
-      els.message.innerHTML = `<div class="${type}">${text}</div>`;
-    }
+if(!addr) addr=await reverse(p.lat,p.lon)
 
-    function formatTime(value) {
-      return new Intl.DateTimeFormat("fr-FR", {
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(new Date(value));
-    }
+stops.push({patient:patient,address:addr,km:km})
 
-    function formatDateTime(value) {
-      return new Intl.DateTimeFormat("fr-FR", {
-        dateStyle: "short",
-        timeStyle: "short"
-      }).format(new Date(value));
-    }
+lastPoint=p
 
-    function totalKm() {
-      return state.stops.reduce((sum, stop) => sum + stop.distanceKm, 0);
-    }
+document.getElementById("patientName").value=""
+document.getElementById("patientAddress").value=""
 
-    function setLoading(loading) {
-      els.startBtn.disabled = loading || state.isRunning;
-      els.stopBtn.disabled = loading || !state.isRunning;
-      els.endBtn.disabled = loading || !state.isRunning;
-      els.resetBtn.disabled = loading;
-      els.exportDayBtn.disabled = loading || state.stops.length === 0;
-      els.exportHistoryBtn.disabled = loading || state.history.length === 0;
-      els.tourName.disabled = state.isRunning;
-    }
+render()
+}
 
-    function renderStops() {
-      if (state.stops.length === 0) {
-        els.stopsTable.innerHTML = `<div class="row"><div class="muted">Aucun arrêt</div><div class="muted">-</div><div class="muted">-</div></div>`;
-        return;
-      }
+document.getElementById("endBtn").onclick=()=>{
+running=false
+}
 
-      els.stopsTable.innerHTML = state.stops.map(stop => `
-        <div class="row">
-          <div>
-            <strong>${stop.patient || stop.label}</strong>
-            <div class="muted" style="font-size:12px">${stop.address || ""}</div>
-          </div>
-          <div>${formatTime(stop.time)}</div>
-          <div>${stop.distanceKm.toFixed(2)} km</div>
-        </div>
-      `).join("");
-    }
+document.getElementById("resetBtn").onclick=()=>{
+stops=[]
+render()
+}
 
-    function renderHistory() {
-      if (state.history.length === 0) {
-        els.historyList.className = "muted";
-        els.historyList.textContent = "Aucune tournée enregistrée pour l'instant.";
-        return;
-      }
+document.getElementById("exportBtn").onclick=()=>{
+let rows=[["Patient","Adresse","Distance km"]]
+stops.forEach(s=>{
+rows.push([s.patient,s.address,s.km.toFixed(2)])
+})
 
-      els.historyList.className = "";
-      els.historyList.innerHTML = state.history.map(item => `
-        <div class="history-item">
-          <div class="history-top">
-            <div>
-              <div style="font-weight:700; font-size:18px;">${escapeHtml(item.tourName)}</div>
-              <div class="muted">${formatDateTime(item.startedAt)} → ${formatDateTime(item.finishedAt)}</div>
-            </div>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <div class="badge">${item.totalKm.toFixed(2)} km</div>
-              <button class="small-btn" onclick="deleteHistory('${item.id}')">Supprimer</button>
-            </div>
-          </div>
-          <div class="history-stops">
-            ${item.stops.map(stop => `
-              <div class="history-stop">
-                <span>${escapeHtml(stop.label)}</span>
-                <strong>${stop.distanceKm.toFixed(2)} km</strong>
-              </div>
-            `).join("")}
-          </div>
-        </div>
-      `).join("");
-    }
+let csv=rows.map(r=>r.join(";")).join("\n")
 
-    function render() {
-      els.tourName.value = state.tourName;
-      els.statusValue.textContent = state.isRunning ? "En cours" : "À l'arrêt";
-      els.startValue.textContent = state.startedAt ? formatTime(state.startedAt) : "-";
-      els.stopsValue.textContent = String(state.stops.length);
-      els.totalValue.textContent = `${totalKm().toFixed(2)} km`;
-      renderStops();
-      renderHistory();
-      setLoading(false);
-    }
+let blob=new Blob([csv])
+let a=document.createElement("a")
+a.href=URL.createObjectURL(blob)
+a.download="tournee.csv"
+a.click()
+}
+</script>
 
-    function downloadFile(filename, content, mimeType) {
-      const blob = new Blob([content], { type: mimeType });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    }
-
-    function toCsvValue(value) {
-      const text = String(value ?? "");
-      return `"${text.replaceAll('"', '""')}"`;
-    }
-
-    function exportCurrentTour() {
-      if (state.stops.length === 0) {
-        showMessage("Aucune tournée en cours à exporter.", "error");
-        return;
-      }
-
-      const rows = [
-        ["Tournee", state.tourName || "Tournée"],
-        ["Date export", new Date().toLocaleString("fr-FR")],
-        ["Depart", state.startedAt ? formatDateTime(state.startedAt) : ""],
-        ["Statut", state.isRunning ? "En cours" : "Terminee"],
-        ["Total km", totalKm().toFixed(2)],
-        [],
-        ["Arret", "Heure", "Distance km"]
-      ];
-
-      state.stops.forEach((stop) => {
-        rows.push([stop.label, formatTime(stop.time), stop.distanceKm.toFixed(2)]);
-      });
-
-      const csv = rows.map((row) => row.map(toCsvValue).join(";")).join("
-");
-      const safeName = (state.tourName || "tournee").replace(/[^a-z0-9-_]+/gi, "_").toLowerCase();
-      const date = new Date().toISOString().slice(0, 10);
-      downloadFile(`tournee_${safeName}_${date}.csv`, csv, "text/csv;charset=utf-8;");
-      showMessage("Export de la tournée effectué.", "info");
-    }
-
-    function exportHistory() {
-      if (state.history.length === 0) {
-        showMessage("Aucun historique à exporter.", "error");
-        return;
-      }
-
-      const rows = [["Tournee", "Date debut", "Date fin", "Arret", "Heure", "Distance km", "Total tournee km"]];
-
-      state.history.forEach((tour) => {
-        if (!tour.stops || tour.stops.length === 0) {
-          rows.push([
-            tour.tourName,
-            formatDateTime(tour.startedAt),
-            formatDateTime(tour.finishedAt),
-            "",
-            "",
-            "",
-            Number(tour.totalKm || 0).toFixed(2)
-          ]);
-          return;
-        }
-
-        tour.stops.forEach((stop, index) => {
-          rows.push([
-            tour.tourName,
-            formatDateTime(tour.startedAt),
-            formatDateTime(tour.finishedAt),
-            stop.label,
-            formatTime(stop.time),
-            Number(stop.distanceKm || 0).toFixed(2),
-            index === 0 ? Number(tour.totalKm || 0).toFixed(2) : ""
-          ]);
-        });
-      });
-
-      const csv = rows.map((row) => row.map(toCsvValue).join(";")).join("
-");
-      const date = new Date().toISOString().slice(0, 10);
-      downloadFile(`historique_tournees_${date}.csv`, csv, "text/csv;charset=utf-8;");
-      showMessage("Export de l'historique effectué.", "info");
-    }
-
-    function escapeHtml(text) {
-      return String(text)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    async function getCurrentPosition() {
-      return new Promise((resolve, reject) => {
-        if (!("geolocation" in navigator)) {
-          reject(new Error("La géolocalisation n'est pas disponible sur cet appareil."));
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-          position => {
-            resolve({
-              lat: position.coords.latitude,
-              lon: position.coords.longitude,
-              accuracy: position.coords.accuracy,
-              timestamp: position.timestamp
-            });
-          },
-          () => reject(new Error("Impossible de récupérer la position GPS.")),
-          {
-            enableHighAccuracy: true,
-            timeout: 15000,
-            maximumAge: 0
-          }
-        );
-      });
-    }
-
-    async function getRoadDistanceKm(a, b) {
-      const url = `https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false&alternatives=false&steps=false`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Le service de calcul routier ne répond pas.");
-      }
-      const data = await response.json();
-      const route = data && data.routes && data.routes[0];
-      if (!route || typeof route.distance !== "number") {
-        throw new Error("Impossible de calculer la distance par la route.");
-      }
-      return route.distance / 1000;
-    }
-
-    async function startTour() {
-      showMessage("");
-      setLoading(true);
-      try {
-        state.tourName = els.tourName.value.trim() || "Tournée";
-        const point = await getCurrentPosition();
-        state.currentPoint = point;
-        state.startedAt = new Date().toISOString();
-        state.stops = [];
-        state.isRunning = true;
-        saveActive();
-        render();
-        showMessage("Tournée démarrée. Le point de départ a été enregistré.", "info");
-      } catch (error) {
-        showMessage(error.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    async function addStop() {
-      if (!state.currentPoint) return;
-      showMessage("");
-      setLoading(true);
-      try {
-        const nextPoint = await getCurrentPosition();
-        const roadKm = await getRoadDistanceKm(state.currentPoint, nextPoint);
-
-        let address = els.patientAddress.value.trim();
-        const patient = els.patientName.value.trim() || `Patient ${state.stops.length + 1}`;
-
-        if (!address) {
-          try {
-            const geoUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${nextPoint.lat}&lon=${nextPoint.lon}`;
-            const resp = await fetch(geoUrl);
-            const data = await resp.json();
-            address = data.display_name || "Adresse inconnue";
-          } catch {
-            address = "Adresse inconnue";
-          }
-        }
-
-        const stop = {
-          id: crypto.randomUUID(),
-          label: `Arrêt ${state.stops.length + 1}`,
-          patient,
-          address,
-          time: new Date().toISOString(),
-          distanceKm: Number(roadKm.toFixed(2))
-        };
-
-        state.stops.push(stop);
-
-        els.patientName.value = "";
-        els.patientAddress.value = "";
-        state.currentPoint = nextPoint;
-        saveActive();
-        render();
-        showMessage(`Arrêt enregistré : ${stop.distanceKm.toFixed(2)} km`, "info");
-      } catch (error) {
-        showMessage(error.message, "error");
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    function endTour() {
-      if (!state.isRunning) return;
-      const entry = {
-        id: crypto.randomUUID(),
-        tourName: state.tourName || "Tournée",
-        startedAt: state.startedAt,
-        finishedAt: new Date().toISOString(),
-        totalKm: Number(totalKm().toFixed(2)),
-        stops: [...state.stops]
-      };
-      state.history.unshift(entry);
-      state.tourName = "";
-      state.isRunning = false;
-      state.currentPoint = null;
-      state.startedAt = null;
-      state.stops = [];
-      saveHistory();
-      saveActive();
-      render();
-      showMessage(`Tournée enregistrée : ${entry.totalKm.toFixed(2)} km au total.`, "info");
-    }
-
-    function resetTour() {
-      state.tourName = "";
-      state.isRunning = false;
-      state.currentPoint = null;
-      state.startedAt = null;
-      state.stops = [];
-      saveActive();
-      render();
-      showMessage("La tournée en cours a été réinitialisée.", "info");
-    }
-
-    function deleteHistory(id) {
-      state.history = state.history.filter(item => item.id !== id);
-      saveHistory();
-      render();
-    }
-
-    window.deleteHistory = deleteHistory;
-
-    els.startBtn.addEventListener("click", startTour);
-    els.stopBtn.addEventListener("click", addStop);
-    els.endBtn.addEventListener("click", endTour);
-    els.resetBtn.addEventListener("click", resetTour);
-    els.exportDayBtn.addEventListener("click", exportCurrentTour);
-    els.exportHistoryBtn.addEventListener("click", exportHistory);
-    els.tourName.addEventListener("input", e => {
-      state.tourName = e.target.value;
-      saveActive();
-    });
-
-    loadData();
-    render();
-  </script>
 </body>
 </html>
+
+
+  
+    
+
