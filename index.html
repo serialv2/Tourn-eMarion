@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -36,6 +35,7 @@ input{width:100%;padding:10px;margin-top:5px;margin-bottom:10px}
 <button id="exportBtn" class="secondary">Export Excel</button>
 <button id="shareBtn" class="secondary">Partager tournée GPS</button>
 
+<div id="status" style="padding:10px;border-radius:8px;background:#eee;font-weight:bold;margin-top:10px;margin-bottom:10px">Statut : tournée non démarrée</div>
 <h3 id="total">Total : 0 km</h3>
 
 <div id="table"></div>
@@ -110,6 +110,16 @@ document.getElementById("table").innerHTML=html
 
 document.getElementById("tourName").value=tourNameValue
 document.getElementById("total").innerText="Total : "+t.toFixed(2)+" km"
+let status=document.getElementById("status")
+if(running){
+status.innerText="Statut : tournée démarrée"
+status.style.background="#dcfce7"
+status.style.color="#166534"
+}else{
+status.innerText="Statut : tournée non démarrée"
+status.style.background="#eee"
+status.style.color="#111"
+}
 }
 
 function updateTourName(){
@@ -221,6 +231,10 @@ render()
 
 </body>
 </html>
+
+
+
+
 
 
 
