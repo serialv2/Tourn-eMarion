@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -101,7 +99,8 @@ t+=s.km
 html+=`<div class="row">
 <div>
 <b>${s.patient}</b><br>
-<small>${s.address}</small>
+<br>
+<small>GPS : ${typeof s.lat==="number" ? s.lat.toFixed(5) : ""}, ${typeof s.lon==="number" ? s.lon.toFixed(5) : ""}</small>
 </div>
 <div>${s.km.toFixed(2)} km</div>
 </div>`
@@ -135,7 +134,7 @@ let addr=document.getElementById("patientAddress").value
 
 if(!addr) addr=await reverse(p.lat,p.lon)
 
-stops.push({patient:patient,address:addr,km:km})
+stops.push({patient:patient,address:addr,km:km,lat:p.lat,lon:p.lon})
 
 lastPoint=p
 saveData()
@@ -157,15 +156,11 @@ running=false
 lastPoint=null
 tourNameValue=""
 document.getElementById("patientName").value=""
-document.getElementById("patientAddress").value=""
-localStorage.removeItem(STORAGE_KEY)
-render()
-}
-
-document.getElementById("exportBtn").onclick=()=>{
-let rows=[["Patient","Adresse","Distance km"]]
+document.getElementByIdeItem(STORAGE_KEY)
+ronclick=()=>{
+let rows=[["Patient","Adresse","Distance km","Latitude","Longitude"]]
 stops.forEach(s=>{
-rows.push([s.patient,s.address,s.km.toFixed(2)])
+rows.push([s.patient,s.address,s.km.toFixed(2),s.lat||"",s.lon||""])
 })
 
 let csv=rows.map(r=>r.join(";")).join("\n")
@@ -179,21 +174,12 @@ a.click()
 
 document.getElementById("shareBtn").onclick=async()=>{
 if(stops.length===0){
-alert("Aucun arrêt à partager")
-return
-}
-
-let addresses=stops
-.map(s=>s.address)
-.filter(a=>a&&a.trim()!="")
-
-if(addresses.length===0){
-alert("Aucune adresse disponible pour le GPS")
+alert("Aalert("Aucun point disponible pour le GPS")
 return
 }
 
 let base="https://www.google.com/maps/dir/"
-let path=addresses.map(a=>encodeURIComponent(a)).join("/")
+let path=points.map(a=>encodeURIComponent(a)).join("/")
 let url=base+path
 
 if(navigator.share){
@@ -218,6 +204,4 @@ render()
 </body>
 </html>
 
-  
-    
 
