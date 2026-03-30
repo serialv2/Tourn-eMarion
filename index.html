@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -99,7 +100,7 @@ t+=s.km
 html+=`<div class="row">
 <div>
 <b>${s.patient}</b><br>
-<br>
+<small>${s.address}</small><br>
 <small>GPS : ${typeof s.lat==="number" ? s.lat.toFixed(5) : ""}, ${typeof s.lon==="number" ? s.lon.toFixed(5) : ""}</small>
 </div>
 <div>${s.km.toFixed(2)} km</div>
@@ -156,8 +157,12 @@ running=false
 lastPoint=null
 tourNameValue=""
 document.getElementById("patientName").value=""
-document.getElementByIdeItem(STORAGE_KEY)
-ronclick=()=>{
+document.getElementById("patientAddress").value=""
+localStorage.removeItem(STORAGE_KEY)
+render()
+}
+
+document.getElementById("exportBtn").onclick=()=>{
 let rows=[["Patient","Adresse","Distance km","Latitude","Longitude"]]
 stops.forEach(s=>{
 rows.push([s.patient,s.address,s.km.toFixed(2),s.lat||"",s.lon||""])
@@ -174,7 +179,20 @@ a.click()
 
 document.getElementById("shareBtn").onclick=async()=>{
 if(stops.length===0){
-alert("Aalert("Aucun point disponible pour le GPS")
+alert("Aucun arrêt à partager")
+return
+}
+
+let points=stops
+.map(s=>{
+if(typeof s.lat==="number" && typeof s.lon==="number") return `${s.lat},${s.lon}`
+if(s.address&&s.address.trim()!=="") return s.address
+return null
+})
+.filter(Boolean)
+
+if(points.length===0){
+alert("Aucun point disponible pour le GPS")
 return
 }
 
@@ -203,5 +221,6 @@ render()
 
 </body>
 </html>
+
 
 
