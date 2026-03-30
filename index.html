@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -30,7 +31,6 @@ input{width:100%;padding:10px;margin-top:5px;margin-bottom:10px}
 
 <button id="startBtn" class="primary">Démarrer</button>
 <button id="stopBtn" class="secondary">Arrêt</button>
-<button id="endBtn" class="secondary">Fin</button>
 <button id="resetBtn" class="secondary">Reset</button>
 <button id="exportBtn" class="secondary">Export Excel</button>
 <button id="shareBtn" class="secondary">Partager tournée GPS</button>
@@ -156,10 +156,7 @@ document.getElementById("patientAddress").value=""
 render()
 }
 
-document.getElementById("endBtn").onclick=()=>{
-running=false
-saveData()
-}
+
 
 document.getElementById("resetBtn").onclick=()=>{
 stops=[]
