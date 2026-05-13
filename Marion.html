@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournée infirmière - ordre de passage</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}.header{background:#1769aa;color:white;padding:18px 20px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px #0002}.header h1{margin:0;font-size:22px}.header p{margin:6px 0 0;font-size:13px;opacity:.9}.wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}.panel h2{font-size:18px;margin:0;padding:14px 16px;background:#eef4fb;border-bottom:1px solid #dce6f1}.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid #eee}.toolbar input{flex:1;min-width:160px;padding:10px;border:1px solid #ccc;border-radius:10px}button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:#1769aa;color:white}button.secondary{background:#667085}button.danger{background:#c62828}button.green{background:#188038}.list{padding:12px;max-height:calc(100vh - 220px);overflow:auto}.card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:white;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}.card.selected{background:#e8f5e9;border-color:#188038}.name{font-weight:800;font-size:15px}.addr{font-size:13px;color:#475467;margin-top:4px}.meta{font-size:12px;color:#667085;margin-top:4px}.routeItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:10px;padding:10px;background:white}.rank{width:28px;height:28px;border-radius:50%;background:#1769aa;color:white;display:flex;align-items:center;justify-content:center;font-weight:800}.moveBtns{display:flex;gap:4px}.moveBtns button{padding:7px 8px;background:#eef4fb;color:#1769aa}.empty{color:#667085;text-align:center;padding:30px 10px}.notice{font-size:12px;color:#667085;padding:0 16px 12px;line-height:1.4}.footerActions{position:sticky;bottom:0;background:white;border-top:1px solid #eee;padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px}.small{font-size:12px;color:#667085}.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}.toggle{font-size:13px;display:flex;align-items:center;gap:6px}a.btn{display:inline-block;text-decoration:none;border-radius:10px;padding:10px 12px;font-weight:700;background:#188038;color:white}@media(max-width:900px){.wrap{grid-template-columns:1fr}.list{max-height:none}.header{position:static}}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Organisation de tournée infirmière</h1>
+  <p>Sélectionne les patients, puis règle l’ordre de passage avec les flèches. Les liens ouvrent l’itinéraire dans Google Maps ou Waze.</p>
+</div>
+<div class="wrap">
+  <section class="panel">
+    <h2>1. Liste des adresses extraites</h2>
+    <div class="toolbar">
+      <input id="search" placeholder="Rechercher un nom, une rue, une ville…" oninput="renderPatients()">
+      <button onclick="selectVisible()">Ajouter visibles</button>
+      <button class="secondary" onclick="clearSelection()">Tout décocher</button>
+    </div>
+    <div class="notice">Certaines lignes du document étaient barrées ou doublonnées. J’ai regroupé les doublons par nom/adresse quand c’était évident.</div>
+    <div id="patients" class="list"></div>
+  </section>
+  <section class="panel">
+    <h2>2. Ordre de tournée</h2>
+    <div class="toolbar">
+      <button class="green" onclick="openGoogleMaps()">Itinéraire Google Maps</button>
+      <button onclick="openWazeNext()">Waze vers le 1er arrêt</button>
+      <button class="secondary" onclick="copyRoute()">Copier la tournée</button>
+      <button class="danger" onclick="resetRoute()">Vider</button>
+    </div>
+    <div class="notice">Google Maps accepte plusieurs arrêts. Waze ouvre surtout une destination à la fois : le bouton ouvre le premier arrêt de la liste.</div>
+    <div id="route" class="list"></div>
+    <div class="footerActions">
+      <textarea id="routeText" class="textarea" readonly placeholder="La tournée copiée apparaîtra ici…"></textarea>
+    </div>
+  </section>
+</div>
+<script>
+const patients = [
+ {name:'CACHOIR Justine', address:'294 rue Lagrange, 59174 La Sentinelle', time:'07:10'},
+ {name:'MERCIER Gisèle', address:'38 rue Eugène Brasseur, 59125 Trith-Saint-Léger', time:'07:30'},
+ {name:'CARPENTIER Gérard', address:"34 rue de l'Humanité, 59125 Trith-Saint-Léger", time:'08:00 / 12:00 / 18:00'},
+ {name:'CARPENTIER Michèle', address:"34 rue de l'Humanité, 59125 Trith-Saint-Léger", time:'08:00 / 18:00'},
+ {name:'CHEMINAIS Yvon', address:'30 rue Eugène Brasseur, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'CHIARELLI Renée', address:'160 rue de l’Égalité, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'CRISPATZU Mario', address:'35 rue Gaston Griolet, 59125 Trith-Saint-Léger', time:'08:00 / 12:00 / 18:00'},
+ {name:'DELECLUSE Martine', address:'29 rue Émile Zola, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'DI BRITA Maria', address:'180 rue Gustave Delory, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'DRAUX Louis', address:'102 rue Voltaire, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'IDE Bernadette', address:'59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:'Adresse précise non lisible sur le document'},
+ {name:'LECLERCQ Pierre', address:'16 rue du Lieutenant Arnold, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'LENNE Nicole', address:'16 rue Gustave Delory, 59125 Trith-Saint-Léger', time:'08:00 / 12:00 / 18:00'},
+ {name:'LEGLEUX Daniel', address:'52 rue Daniel Casanova, 59125 Trith-Saint-Léger', time:'08:00'},
+ {name:'PANIEZ Roland', address:'12 Résidence Florent Gilles, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'PARENT Josiane', address:'19 rue du Nouveau Monde, 59121 Haulchin', time:'08:00'},
+ {name:'PECQUEUR Gilbert', address:'6 Clos Aragon, 59125 Trith-Saint-Léger', time:'08:00 / 18:00'},
+ {name:'WAGRET Ghislaine', address:'49 rue Gustave Delory, 59125 Trith-Saint-Léger', time:'08:00'},
+ {name:'CHARLET Marie-France', address:'15 résidence Florent Gilles, 59125 Trith-Saint-Léger', time:'09:00'},
+ {name:'NOR Mohammed', address:'22 rue Paul Langevin, 59233 Maing', time:'10:00'},
+ {name:'PETIT Marie-Claire', address:'46 rue Danton, 59125 Trith-Saint-Léger', time:'10:00 / 18:00'},
+ {name:'CLAISSE Jean-Émile', address:'31 résidence Paul Cézanne, 59125 Trith-Saint-Léger', time:'11:00'},
+ {name:'DUBOIS Jean-Pierre', address:'7 résidence Léo Ferré, 59125 Trith-Saint-Léger', time:'18:00'},
+ {name:'DUFIEF Janick', address:'57A rue Victor Hugo, 59125 Trith-Saint-Léger', time:'18:00'},
+ {name:'DUMEZ Bernard', address:'2 rue de la Concorde, 59125 Trith-Saint-Léger', time:'18:00'},
+ {name:'MARTELOSSI Fiona', address:'36 rue Daniel Casanova, 59125 Trith-Saint-Léger', time:'18:00'},
+ {name:'SALENGROS Élie', address:"24 rue de l'Humanité, 59125 Trith-Saint-Léger", time:'18:00'}
+];
+let selected = [];
+function norm(s){return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function renderPatients(){
+ const q=norm(document.getElementById('search').value||'');
+ const box=document.getElementById('patients'); box.innerHTML='';
+ patients.filter(p=>norm(p.name+' '+p.address+' '+(p.note||'')).includes(q)).forEach((p,i)=>{
+  const realIndex=patients.indexOf(p), isSel=selected.includes(realIndex);
+  const div=document.createElement('div'); div.className='card '+(isSel?'selected':'');
+  div.innerHTML=`<input type="checkbox" ${isSel?'checked':''} onchange="togglePatient(${realIndex})"><div><div class="name">${p.name}</div><div class="addr">${p.address}</div><div class="meta">Horaire document : ${p.time}${p.note?' — '+p.note:''}</div></div>`;
+  box.appendChild(div);
+ });
+}
+function togglePatient(i){ const pos=selected.indexOf(i); if(pos>=0) selected.splice(pos,1); else selected.push(i); renderPatients(); renderRoute(); }
+function selectVisible(){ const q=norm(document.getElementById('search').value||''); patients.forEach((p,i)=>{if(norm(p.name+' '+p.address).includes(q)&&!selected.includes(i)) selected.push(i)}); renderPatients(); renderRoute(); }
+function clearSelection(){ selected=[]; renderPatients(); renderRoute(); }
+function renderRoute(){
+ const box=document.getElementById('route'); box.innerHTML='';
+ if(!selected.length){box.innerHTML='<div class="empty">Aucun patient sélectionné.</div>'; document.getElementById('routeText').value=''; return;}
+ selected.forEach((idx,pos)=>{ const p=patients[idx]; const div=document.createElement('div'); div.className='routeItem';
+  div.innerHTML=`<div class="rank">${pos+1}</div><div><div class="name">${p.name}</div><div class="addr">${p.address}</div><div class="small">${p.time}</div></div><div class="moveBtns"><button onclick="move(${pos},-1)">↑</button><button onclick="move(${pos},1)">↓</button><button onclick="removeAt(${pos})">✕</button></div>`;
+  box.appendChild(div);
+ });
+ document.getElementById('routeText').value = buildText();
+}
+function move(pos,dir){ const n=pos+dir; if(n<0||n>=selected.length)return; [selected[pos],selected[n]]=[selected[n],selected[pos]]; renderPatients(); renderRoute(); }
+function removeAt(pos){ selected.splice(pos,1); renderPatients(); renderRoute(); }
+function resetRoute(){ selected=[]; renderPatients(); renderRoute(); }
+function buildText(){ return selected.map((idx,i)=>`${i+1}. ${patients[idx].name} — ${patients[idx].address}`).join('\n'); }
+async function copyRoute(){ const t=buildText(); document.getElementById('routeText').value=t; try{await navigator.clipboard.writeText(t); alert('Tournée copiée.');}catch(e){alert('Copie impossible automatiquement, sélectionne le texte en bas.');}}
+function enc(s){return encodeURIComponent(s)}
+function openGoogleMaps(){
+ if(selected.length===0){alert('Sélectionne au moins une adresse.');return;}
+ const addrs=selected.map(i=>patients[i].address);
+ let url='https://www.google.com/maps/dir/?api=1&travelmode=driving';
+ if(addrs.length===1){url+='&destination='+enc(addrs[0]);}
+ else{url+='&origin=Maing, France&destination='+enc(addrs[addrs.length-1])+'&waypoints='+enc(addrs.slice(0,-1).join('|'));}
+ window.open(url,'_blank');
+}
+function openWazeNext(){
+ if(selected.length===0){alert('Sélectionne au moins une adresse.');return;}
+ const p=patients[selected[0]];
+ window.open('https://waze.com/ul?q='+enc(p.address)+'&navigate=yes','_blank');
+}
+renderPatients(); renderRoute();
+</script>
+</body>
+</html>
