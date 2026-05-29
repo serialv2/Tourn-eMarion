@@ -127,6 +127,111 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
  color:#188038;
  font-weight:700;
 }
+
+.routeActions{
+ display:flex;
+ gap:5px;
+ flex-wrap:wrap;
+ justify-content:flex-end;
+}
+.routeActions button{
+ padding:7px 8px;
+ background:#eef4fb;
+ color:#1769aa;
+}
+.routeActions button.houseBtn{
+ background:#fff7ed;
+ color:#c2410c;
+}
+.routeActions button.mapBtn{
+ background:#e8f5e9;
+ color:#188038;
+}
+.routeActions button.wazeBtn{
+ background:#eef4fb;
+ color:#1769aa;
+}
+.houseOverlay{
+ position:fixed;
+ inset:0;
+ background:rgba(0,0,0,.55);
+ z-index:200;
+ display:none;
+ align-items:center;
+ justify-content:center;
+ padding:14px;
+}
+.houseBox{
+ width:100%;
+ max-width:680px;
+ background:white;
+ border-radius:18px;
+ overflow:hidden;
+ box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.houseHeader{
+ background:#1769aa;
+ color:white;
+ padding:14px 16px;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+}
+.houseHeader h3{
+ margin:0;
+ font-size:17px;
+}
+.houseClose{
+ background:white;
+ color:#1769aa;
+ padding:8px 10px;
+ border-radius:8px;
+}
+.houseContent{
+ padding:14px;
+}
+.housePhoto{
+ width:100%;
+ min-height:280px;
+ border:0;
+ border-radius:14px;
+ background:#eef4fb;
+ object-fit:cover;
+ display:block;
+}
+.houseAddress{
+ margin-top:10px;
+ font-size:13px;
+ color:#475467;
+ line-height:1.4;
+}
+.houseButtons{
+ margin-top:12px;
+ display:flex;
+ gap:8px;
+ flex-wrap:wrap;
+}
+.houseButtons button{
+ flex:1;
+}
+@media(max-width:900px){
+ .routeActions{
+  grid-column:1/-1;
+  justify-content:stretch;
+ }
+ .routeActions button{
+  flex:1;
+  font-size:13px;
+ }
+ .houseBox{
+  max-width:100%;
+ }
+ .housePhoto{
+  min-height:240px;
+ }
+}
+
 @media(max-width:650px){
  .restoreCards{grid-template-columns:1fr}
  .realFileInput{font-size:12px}
@@ -283,6 +388,28 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
       <textarea id="routeText" class="textarea" readonly placeholder="La tournée copiée apparaîtra ici…"></textarea>
     </div>
   </section>
+</div>
+
+
+<div id="houseOverlay" class="houseOverlay">
+  <div class="houseBox">
+    <div class="houseHeader">
+      <h3 id="houseTitle">Maison du patient</h3>
+      <button class="houseClose" onclick="closeHousePopup()">Fermer</button>
+    </div>
+    <div class="houseContent">
+      <img id="housePhoto" class="housePhoto" alt="Vue de la maison">
+      <div id="houseAddress" class="houseAddress"></div>
+      <div class="houseButtons">
+        <button class="green" onclick="openCurrentHouseMaps()">Ouvrir Maps</button>
+        <button onclick="openCurrentHouseWaze()">Ouvrir Waze</button>
+        <button class="secondary" onclick="closeHousePopup()">Retour tournée</button>
+      </div>
+      <div class="small" style="margin-top:10px">
+        Si la photo ne s’affiche pas, vérifie que ta clé Google Street View est bien renseignée dans le code.
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="patientFormOverlay" class="formOverlay">
@@ -480,7 +607,10 @@ function renderRoute(){
       <div class="addr">${escapeHtml(p.address)}</div>
       <div class="small">${escapeHtml(p.time || '')}${p.note ? ' — ' + escapeHtml(p.note) : ''}</div>
     </div>
-    <div class="moveBtns">
+    <div class="routeActions">
+      <button class="houseBtn" onclick="viewHouse(${idx})">🏠 Maison</button>
+      <button class="mapBtn" onclick="openPatientMap(${idx})">📍 Maps</button>
+      <button class="wazeBtn" onclick="openPatientWaze(${idx})">🚗 Waze</button>
       <button onclick="move(${pos},-1)">↑</button>
       <button onclick="move(${pos},1)">↓</button>
       <button class="danger" onclick="removeAt(${pos})">✕</button>
@@ -802,6 +932,70 @@ function openGoogleMapsFullOrFirst(){
  window.open(buildGoogleMapsUrl(stops, true), '_blank');
 }
 
+
+let currentHouseAddress = '';
+let currentHouseName = '';
+
+// Mets ta clé Google Street View ici si tu veux afficher la photo directement dans la page.
+// Exemple : const GOOGLE_STREET_VIEW_API_KEY = "AIzaSy....";
+const GOOGLE_STREET_VIEW_API_KEY = "";
+
+function openPatientMap(index){
+ const p = patients[index];
+ if(!p || !p.address) return;
+ window.open('https://www.google.com/maps/search/?api=1&query=' + enc(p.address), '_blank');
+}
+
+function openPatientWaze(index){
+ const p = patients[index];
+ if(!p || !p.address) return;
+ window.open('https://waze.com/ul?q=' + enc(p.address) + '&navigate=yes', '_blank');
+}
+
+function viewHouse(index){
+ const p = patients[index];
+ if(!p || !p.address) return;
+
+ currentHouseAddress = p.address;
+ currentHouseName = p.name || 'Maison du patient';
+
+ document.getElementById('houseTitle').textContent = '🏠 ' + currentHouseName;
+ document.getElementById('houseAddress').textContent = p.address;
+ document.getElementById('houseOverlay').style.display = 'flex';
+
+ const img = document.getElementById('housePhoto');
+
+ if(GOOGLE_STREET_VIEW_API_KEY && GOOGLE_STREET_VIEW_API_KEY.trim() !== ''){
+  img.src =
+   'https://maps.googleapis.com/maps/api/streetview?size=900x520&fov=80&heading=0&pitch=0&location='
+   + enc(p.address)
+   + '&key='
+   + enc(GOOGLE_STREET_VIEW_API_KEY);
+ }else{
+  // Sans clé API : on affiche une carte intégrée Google Maps comme secours.
+  // Ce n’est pas une vraie photo Street View, mais ça fonctionne sans configuration.
+  img.removeAttribute('src');
+  img.alt = 'Aucune clé Street View renseignée';
+  document.getElementById('houseAddress').innerHTML =
+   escapeHtml(p.address)
+   + '<br><br><b>Photo Street View non configurée.</b><br>Renseigne ta clé Google dans la ligne GOOGLE_STREET_VIEW_API_KEY, ou clique sur “Ouvrir Maps”.';
+ }
+}
+
+function closeHousePopup(){
+ document.getElementById('houseOverlay').style.display = 'none';
+}
+
+function openCurrentHouseMaps(){
+ if(!currentHouseAddress) return;
+ window.open('https://www.google.com/maps/search/?api=1&query=' + enc(currentHouseAddress), '_blank');
+}
+
+function openCurrentHouseWaze(){
+ if(!currentHouseAddress) return;
+ window.open('https://waze.com/ul?q=' + enc(currentHouseAddress) + '&navigate=yes', '_blank');
+}
+
 function openWazeNext(){
  if(selected.length === 0){ alert('Sélectionne au moins une adresse.'); return; }
  const p = patients[selected[0]];
@@ -954,8 +1148,15 @@ document.getElementById('patientFormOverlay').addEventListener('click', function
  if(e.target === this) closePatientForm();
 });
 
+document.getElementById('houseOverlay').addEventListener('click', function(e){
+ if(e.target === this) closeHousePopup();
+});
+
 document.addEventListener('keydown', function(e){
- if(e.key === 'Escape') closePatientForm();
+ if(e.key === 'Escape'){
+  closePatientForm();
+  closeHousePopup();
+ }
 });
 
 
