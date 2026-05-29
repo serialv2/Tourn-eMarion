@@ -60,6 +60,34 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
 .segmentButtons button{background:#188038}
 .segmentButtons button.secondary{background:#1769aa}
 .segmentInfo{font-size:12px;color:#667085;margin-top:8px;line-height:1.4}
+
+.fileRestoreZone{
+ margin-top:10px;
+ padding:12px;
+ border:1px dashed #b6c2d1;
+ border-radius:12px;
+ background:#ffffff;
+}
+.fileBtnLabel{
+ display:inline-block;
+ border-radius:10px;
+ padding:11px 12px;
+ cursor:pointer;
+ font-weight:700;
+ background:#1769aa;
+ color:white;
+ margin:4px 4px 4px 0;
+}
+.fileBtnLabel.green{background:#188038}
+.fileBtnLabel.orange{background:#f57c00}
+.hiddenFileInput{
+ position:absolute;
+ left:-9999px;
+ width:1px;
+ height:1px;
+ opacity:0;
+}
+
 @media(max-width:900px){
  .wrap{grid-template-columns:1fr}
  .list{max-height:none}
@@ -104,11 +132,38 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
         La sauvegarde complète contient les patients + l’ordre de tournée sélectionné.
       </div>
       <div class="backupLine">
-        <button class="green" onclick="exportBackup()">Télécharger sauvegarde complète</button>
-        <input id="backupFile" type="file" accept=".json,application/json" onchange="importBackup(event)">
+        <button class="green" onclick="exportBackup()">Sauvegarde complète</button>
         <button onclick="exportRouteOnly()">Sauver ordre seul</button>
-        <input id="routeFile" type="file" accept=".json,application/json" onchange="importRouteOnly(event)">
+        <button class="secondary" onclick="copyFullBackup()">Copier sauvegarde</button>
+        <button class="secondary" onclick="shareFullBackup()">Partager sauvegarde</button>
+        <button class="secondary" onclick="copyRouteBackup()">Copier ordre</button>
+        <button class="secondary" onclick="shareRouteBackup()">Partager ordre</button>
         <button class="danger" onclick="resetAllData()">Réinitialiser tout</button>
+      </div>
+
+      <div class="fileRestoreZone">
+        <div class="small" style="margin-bottom:8px">
+          Restauration sur iPhone : appuie sur un bouton ci-dessous, puis choisis ton fichier JSON dans <b>Fichiers / iCloud Drive / Sur mon iPhone</b>.
+        </div>
+
+        <label for="backupFile" class="fileBtnLabel green">Restaurer sauvegarde complète</label>
+        <input id="backupFile" class="hiddenFileInput" type="file" accept=".json,application/json,text/plain" onchange="importBackup(event)">
+
+        <label for="routeFile" class="fileBtnLabel orange">Restaurer ordre seul</label>
+        <input id="routeFile" class="hiddenFileInput" type="file" accept=".json,application/json,text/plain" onchange="importRouteOnly(event)">
+
+        <div id="fileStatus" class="small" style="margin-top:8px"></div>
+      </div>
+
+      <div class="small" style="margin-top:10px">
+        Secours si iPhone refuse le fichier : copie/colle le JSON dans la zone ci-dessous.
+      </div>
+
+      <textarea id="backupText" class="textarea" style="margin-top:10px;min-height:120px" placeholder="La sauvegarde JSON apparaîtra ici. Tu peux aussi coller ici une sauvegarde JSON puis cliquer sur Restaurer JSON collé."></textarea>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button class="green" onclick="restoreBackupFromText()">Restaurer JSON collé</button>
+        <button class="secondary" onclick="document.getElementById('backupText').value=''">Effacer zone</button>
       </div>
     </div>
 
@@ -483,14 +538,36 @@ function toggleBackup(){
  box.style.display = box.style.display === 'block' ? 'none' : 'block';
 }
 
+function getFullBackupData(){
+ return {version: 1, type: 'complete', exportedAt: new Date().toISOString(), patients: patients, selected: selected};
+}
+
+function getRouteBackupData(){
+ const route = selected.map(i => {
+  const p = patients[i];
+  return {name: p.name, address: p.address};
+ });
+ return {version: 1, type: 'route', exportedAt: new Date().toISOString(), route: route};
+}
+
 function exportBackup(){
- const data = {version: 1, exportedAt: new Date().toISOString(), patients: patients, selected: selected};
+ const data = getFullBackupData();
+ showBackupText(data);
  downloadJson(data, 'sauvegarde-tournee-complete-' + today() + '.json');
 }
 
+function setFileStatus(msg){
+ const el = document.getElementById('fileStatus');
+ if(el) el.textContent = msg || '';
+}
+
 function importBackup(event){
- const file = event.target.files[0];
- if(!file) return;
+ const file = event.target.files && event.target.files[0];
+ if(!file){
+  setFileStatus('Aucun fichier sélectionné.');
+  return;
+ }
+ setFileStatus('Fichier choisi : ' + file.name);
 
  readJsonFile(file, data => {
   if(!data || !Array.isArray(data.patients)){ alert('Fichier de sauvegarde invalide.'); return; }
@@ -509,22 +586,24 @@ function importBackup(event){
   renderPatients();
   renderRoute();
   renderSegments(false);
-  alert('Sauvegarde restaurée.');
+  setFileStatus('Sauvegarde complète restaurée : ' + file.name); alert('Sauvegarde restaurée.');
  });
  event.target.value = '';
 }
 
 function exportRouteOnly(){
- const route = selected.map(i => {
-  const p = patients[i];
-  return {name: p.name, address: p.address};
- });
- downloadJson({version: 1, exportedAt: new Date().toISOString(), route: route}, 'ordre-tournee-' + today() + '.json');
+ const data = getRouteBackupData();
+ showBackupText(data);
+ downloadJson(data, 'ordre-tournee-' + today() + '.json');
 }
 
 function importRouteOnly(event){
- const file = event.target.files[0];
- if(!file) return;
+ const file = event.target.files && event.target.files[0];
+ if(!file){
+  setFileStatus('Aucun fichier sélectionné.');
+  return;
+ }
+ setFileStatus('Fichier choisi : ' + file.name);
 
  readJsonFile(file, data => {
   if(!data || !Array.isArray(data.route)){ alert('Fichier d’ordre invalide.'); return; }
@@ -542,7 +621,7 @@ function importRouteOnly(event){
   renderPatients();
   renderRoute();
   renderSegments(false);
-  alert(newSelected.length + ' patient(s) restauré(s) dans l’ordre.');
+  setFileStatus('Ordre restauré : ' + file.name); alert(newSelected.length + ' patient(s) restauré(s) dans l’ordre.');
  });
  event.target.value = '';
 }
@@ -663,8 +742,139 @@ function openWazeNext(){
  window.open('https://waze.com/ul?q=' + enc(p.address) + '&navigate=yes', '_blank');
 }
 
+function showBackupText(data){
+ const area = document.getElementById('backupText');
+ if(area){
+  area.value = JSON.stringify(data, null, 2);
+ }
+}
+
+async function copyTextToClipboard(text){
+ try{
+  await navigator.clipboard.writeText(text);
+  alert('Sauvegarde copiée. Tu peux la coller dans Notes, Mail, WhatsApp, etc.');
+ }catch(e){
+  const area = document.getElementById('backupText');
+  if(area){
+   area.value = text;
+   area.focus();
+   area.select();
+  }
+  alert('Copie automatique impossible. Sélectionne le texte affiché puis copie-le manuellement.');
+ }
+}
+
+function copyFullBackup(){
+ const data = getFullBackupData();
+ const text = JSON.stringify(data, null, 2);
+ showBackupText(data);
+ copyTextToClipboard(text);
+}
+
+function copyRouteBackup(){
+ const data = getRouteBackupData();
+ const text = JSON.stringify(data, null, 2);
+ showBackupText(data);
+ copyTextToClipboard(text);
+}
+
+async function shareJsonData(data, filename){
+ const text = JSON.stringify(data, null, 2);
+ showBackupText(data);
+
+ try{
+  const file = new File([text], filename, {type:'application/json'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+   await navigator.share({files:[file], title:filename, text:'Sauvegarde tournée infirmière'});
+   return;
+  }
+ }catch(e){}
+
+ try{
+  if(navigator.share){
+   await navigator.share({title:filename, text:text});
+   return;
+  }
+ }catch(e){}
+
+ copyTextToClipboard(text);
+}
+
+function shareFullBackup(){
+ shareJsonData(getFullBackupData(), 'sauvegarde-tournee-complete-' + today() + '.json');
+}
+
+function shareRouteBackup(){
+ shareJsonData(getRouteBackupData(), 'ordre-tournee-' + today() + '.json');
+}
+
+function restoreBackupFromText(){
+ const area = document.getElementById('backupText');
+ const text = area ? area.value.trim() : '';
+ if(!text){
+  alert('Colle d’abord une sauvegarde JSON dans la zone.');
+  return;
+ }
+
+ try{
+  const data = JSON.parse(text);
+
+  if(Array.isArray(data.patients)){
+   if(!confirm('Restaurer cette sauvegarde complète ? Les données actuelles seront remplacées.')) return;
+
+   patients = data.patients.map(p => ({
+    name: String(p.name || '').trim(),
+    address: String(p.address || '').trim(),
+    time: String(p.time || '').trim(),
+    note: String(p.note || '').trim()
+   })).filter(p => p.name && p.address);
+
+   selected = Array.isArray(data.selected) ? data.selected.filter(i => Number.isInteger(i) && i >= 0 && i < patients.length) : [];
+
+   saveAll();
+   renderPatients();
+   renderRoute();
+   renderSegments(false);
+   alert('Sauvegarde complète restaurée.');
+   return;
+  }
+
+  if(Array.isArray(data.route)){
+   const newSelected = [];
+   data.route.forEach(item => {
+    const name = norm(item.name || '');
+    const address = norm(item.address || '');
+    const index = patients.findIndex(p => norm(p.name) === name && norm(p.address) === address);
+    if(index >= 0 && !newSelected.includes(index)) newSelected.push(index);
+   });
+
+   selected = newSelected;
+   saveAll();
+   renderPatients();
+   renderRoute();
+   renderSegments(false);
+   setFileStatus('Ordre restauré : ' + file.name); alert(newSelected.length + ' patient(s) restauré(s) dans l’ordre.');
+   return;
+  }
+
+  alert('JSON reconnu, mais ce n’est pas une sauvegarde valide.');
+ }catch(e){
+  alert('JSON invalide. Vérifie que tu as bien collé toute la sauvegarde.');
+ }
+}
+
 function downloadJson(data, filename){
- const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+ showBackupText(data);
+
+ const text = JSON.stringify(data, null, 2);
+ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+ if(isIOS){
+  shareJsonData(data, filename);
+  return;
+ }
+
+ const blob = new Blob([text], {type:'application/json'});
  const url = URL.createObjectURL(blob);
  const a = document.createElement('a');
  a.href = url;
@@ -672,7 +882,7 @@ function downloadJson(data, filename){
  document.body.appendChild(a);
  a.click();
  a.remove();
- URL.revokeObjectURL(url);
+ setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function readJsonFile(file, callback){
