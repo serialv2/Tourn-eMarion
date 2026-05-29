@@ -129,10 +129,11 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
  padding:12px;
  background:#f8fafc;
 }
-.streetFrame{
+.streetImage{
+ display:block;
  width:100%;
- height:420px;
- border:0;
+ max-height:70vh;
+ object-fit:cover;
  border-radius:12px;
  background:#e5e7eb;
 }
@@ -161,8 +162,8 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
   display:grid;
   grid-template-columns:1fr 1fr;
  }
- .streetFrame{
-  height:70vh;
+ .streetImage{
+  max-height:70vh;
  }
 }
 
@@ -322,7 +323,7 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
     </div>
 
     <div class="streetBody">
-      <iframe id="streetFrame" class="streetFrame" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <img id="streetImage" class="streetImage" src="" alt="Vue Street View de la maison">
       <div class="streetFallback">
         Si la vue ne s’affiche pas correctement, utilise le bouton :
         <a id="streetExternalLink" href="#" target="_blank" rel="noopener">ouvrir dans Google Maps</a>
@@ -335,6 +336,7 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
 const STORAGE_KEY = "tournee_infirmiere_patients_v4_segments";
 const SELECTED_KEY = "tournee_infirmiere_selection_v4_segments";
 const GOOGLE_MAX_STOPS_PER_SEGMENT = 9;
+const GOOGLE_STREET_VIEW_API_KEY = "AIzaSyDXeTRU9Ex3nDGMgkH_r4Z8SEFXprnIcns";
 
 const defaultPatients = [
  {name:'CACHOIR Justine', address:'294 rue Lagrange, 59174 La Sentinelle', time:'07:10', note:''},
@@ -1050,17 +1052,26 @@ function openStreetView(index){
  document.getElementById('streetAddress').textContent = address;
 
  const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + enc(address);
- const streetUrl = 'https://www.google.com/maps?q=' + enc(address) + '&layer=c&output=embed';
+
+ const streetUrl =
+  'https://maps.googleapis.com/maps/api/streetview' +
+  '?size=800x500' +
+  '&location=' + enc(address) +
+  '&fov=80' +
+  '&heading=0' +
+  '&pitch=0' +
+  '&source=outdoor' +
+  '&key=' + GOOGLE_STREET_VIEW_API_KEY;
 
  document.getElementById('streetExternalLink').href = mapsUrl;
- document.getElementById('streetFrame').src = streetUrl;
+ document.getElementById('streetImage').src = streetUrl;
  document.getElementById('streetModal').style.display = 'flex';
 }
 
 function closeStreetView(){
  const modal = document.getElementById('streetModal');
- const frame = document.getElementById('streetFrame');
- if(frame) frame.src = '';
+ const image = document.getElementById('streetImage');
+ if(image) image.src = '';
  if(modal) modal.style.display = 'none';
 }
 
