@@ -88,6 +88,84 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
  opacity:0;
 }
 
+
+.streetModal{
+ position:fixed;
+ inset:0;
+ background:rgba(0,0,0,.78);
+ z-index:9999;
+ display:none;
+ align-items:center;
+ justify-content:center;
+ padding:16px;
+}
+.streetContent{
+ width:100%;
+ max-width:760px;
+ background:white;
+ border-radius:18px;
+ overflow:hidden;
+ box-shadow:0 22px 70px rgba(0,0,0,.45);
+}
+.streetHeader{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:10px;
+ padding:12px 14px;
+ background:#1769aa;
+ color:white;
+}
+.streetTitle{
+ font-weight:800;
+ line-height:1.2;
+}
+.streetAddress{
+ font-size:12px;
+ opacity:.9;
+ margin-top:3px;
+}
+.streetBody{
+ padding:12px;
+ background:#f8fafc;
+}
+.streetFrame{
+ width:100%;
+ height:420px;
+ border:0;
+ border-radius:12px;
+ background:#e5e7eb;
+}
+.streetFallback{
+ font-size:12px;
+ color:#667085;
+ line-height:1.4;
+ margin-top:8px;
+}
+.streetFallback a{
+ color:#1769aa;
+ font-weight:800;
+}
+.cardActions{
+ min-width:112px;
+}
+.cardActions button{
+ white-space:nowrap;
+}
+@media(max-width:600px){
+ .card{
+  grid-template-columns:auto 1fr;
+ }
+ .cardActions{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+ }
+ .streetFrame{
+  height:70vh;
+ }
+}
+
 @media(max-width:900px){
  .wrap{grid-template-columns:1fr}
  .list{max-height:none}
@@ -232,6 +310,27 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
   </div>
 </div>
 
+
+<div id="streetModal" class="streetModal" onclick="streetBackdropClose(event)">
+  <div class="streetContent">
+    <div class="streetHeader">
+      <div>
+        <div id="streetTitle" class="streetTitle">Vue de la maison</div>
+        <div id="streetAddress" class="streetAddress"></div>
+      </div>
+      <button class="danger" onclick="closeStreetView()">✖ Fermer</button>
+    </div>
+
+    <div class="streetBody">
+      <iframe id="streetFrame" class="streetFrame" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="streetFallback">
+        Si la vue ne s’affiche pas correctement, utilise le bouton :
+        <a id="streetExternalLink" href="#" target="_blank" rel="noopener">ouvrir dans Google Maps</a>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 const STORAGE_KEY = "tournee_infirmiere_patients_v4_segments";
 const SELECTED_KEY = "tournee_infirmiere_selection_v4_segments";
@@ -331,6 +430,9 @@ function renderPatients(){
     </div>
     <div class="cardActions">
       <button onclick="editPatient(${index})">Modifier</button>
+      <button class="green" onclick="openStreetView(${index})">🏠 Voir maison</button>
+      <button onclick="openPatientMaps(${index})">📍 Maps</button>
+      <button class="orange" onclick="openPatientWaze(${index})">🚗 Waze</button>
       <button class="danger" onclick="deletePatient(${index})">Supprimer</button>
     </div>
   `;
@@ -914,8 +1016,59 @@ document.getElementById('patientFormOverlay').addEventListener('click', function
 });
 
 document.addEventListener('keydown', function(e){
- if(e.key === 'Escape') closePatientForm();
+ if(e.key === 'Escape'){
+  const streetModal = document.getElementById('streetModal');
+  if(streetModal && streetModal.style.display === 'flex'){
+   closeStreetView();
+   return;
+  }
+  closePatientForm();
+ }
 });
+
+
+function openPatientMaps(index){
+ const p = patients[index];
+ if(!p || !p.address){ alert('Adresse introuvable.'); return; }
+ window.open('https://www.google.com/maps/search/?api=1&query=' + enc(p.address), '_blank');
+}
+
+function openPatientWaze(index){
+ const p = patients[index];
+ if(!p || !p.address){ alert('Adresse introuvable.'); return; }
+ window.open('https://waze.com/ul?q=' + enc(p.address) + '&navigate=yes', '_blank');
+}
+
+function openStreetView(index){
+ const p = patients[index];
+ if(!p || !p.address){ alert('Adresse introuvable.'); return; }
+
+ const title = p.name || 'Vue de la maison';
+ const address = p.address || '';
+
+ document.getElementById('streetTitle').textContent = '🏠 ' + title;
+ document.getElementById('streetAddress').textContent = address;
+
+ const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + enc(address);
+ const streetUrl = 'https://www.google.com/maps?q=' + enc(address) + '&layer=c&output=embed';
+
+ document.getElementById('streetExternalLink').href = mapsUrl;
+ document.getElementById('streetFrame').src = streetUrl;
+ document.getElementById('streetModal').style.display = 'flex';
+}
+
+function closeStreetView(){
+ const modal = document.getElementById('streetModal');
+ const frame = document.getElementById('streetFrame');
+ if(frame) frame.src = '';
+ if(modal) modal.style.display = 'none';
+}
+
+function streetBackdropClose(event){
+ if(event.target && event.target.id === 'streetModal'){
+  closeStreetView();
+ }
+}
 
 renderPatients();
 renderRoute();
