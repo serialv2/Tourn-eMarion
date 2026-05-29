@@ -61,110 +61,109 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
 .segmentButtons button.secondary{background:#1769aa}
 .segmentInfo{font-size:12px;color:#667085;margin-top:8px;line-height:1.4}
 
-.fileRestoreZone{
- margin-top:10px;
- padding:12px;
- border:1px dashed #b6c2d1;
- border-radius:12px;
- background:#ffffff;
-}
-.fileBtnLabel{
- display:inline-block;
- border-radius:10px;
- padding:11px 12px;
- cursor:pointer;
- font-weight:700;
- background:#1769aa;
- color:white;
- margin:4px 4px 4px 0;
-}
-.fileBtnLabel.green{background:#188038}
-.fileBtnLabel.orange{background:#f57c00}
-.hiddenFileInput{
- position:absolute;
- left:-9999px;
- width:1px;
- height:1px;
- opacity:0;
-}
-
-
-.streetModal{
- position:fixed;
- inset:0;
- background:rgba(0,0,0,.78);
- z-index:9999;
- display:none;
- align-items:center;
- justify-content:center;
- padding:16px;
-}
-.streetContent{
- width:100%;
- max-width:760px;
- background:white;
- border-radius:18px;
- overflow:hidden;
- box-shadow:0 22px 70px rgba(0,0,0,.45);
-}
-.streetHeader{
+.backupActions{
  display:flex;
- align-items:center;
- justify-content:space-between;
+ gap:8px;
+ flex-wrap:wrap;
+ margin-bottom:12px;
+}
+.restoreCards{
+ display:grid;
+ grid-template-columns:1fr 1fr;
  gap:10px;
- padding:12px 14px;
- background:#1769aa;
- color:white;
+ margin-top:10px;
 }
-.streetTitle{
- font-weight:800;
- line-height:1.2;
-}
-.streetAddress{
- font-size:12px;
- opacity:.9;
- margin-top:3px;
-}
-.streetBody{
+.restoreCard{
+ border:1px solid #dce6f1;
+ background:white;
+ border-radius:14px;
  padding:12px;
- background:#f8fafc;
+ box-shadow:0 1px 6px rgba(0,0,0,.04);
 }
-.streetImage{
- display:block;
- width:100%;
- max-height:70vh;
- object-fit:cover;
- border-radius:12px;
- background:#e5e7eb;
+.restoreTitle{
+ font-weight:800;
+ color:#1769aa;
+ margin-bottom:4px;
 }
-.streetFallback{
+.restoreText{
  font-size:12px;
  color:#667085;
- line-height:1.4;
- margin-top:8px;
+ margin-bottom:10px;
 }
-.streetFallback a{
- color:#1769aa;
+.realFileInput{
+ width:100%;
+ display:block;
+ padding:10px;
+ border:1px solid #cfd8e3;
+ border-radius:10px;
+ background:#f8fafc;
+ font-size:13px;
+ color:#344054;
+}
+.realFileInput::file-selector-button{
+ border:0;
+ border-radius:8px;
+ padding:9px 10px;
+ margin-right:10px;
+ background:#1769aa;
+ color:white;
+ font-weight:700;
+}
+.pasteRestore{
+ margin-top:12px;
+ border:1px solid #dce6f1;
+ border-radius:12px;
+ background:#fff;
+ padding:10px 12px;
+}
+.pasteRestore summary{
+ cursor:pointer;
  font-weight:800;
+ color:#1769aa;
 }
-.cardActions{
- min-width:112px;
+.restoreStatus{
+ margin-top:10px;
+ font-size:12px;
+ color:#188038;
+ font-weight:700;
 }
-.cardActions button{
- white-space:nowrap;
+@media(max-width:650px){
+ .restoreCards{grid-template-columns:1fr}
+ .realFileInput{font-size:12px}
+ .realFileInput::file-selector-button{display:block;margin:0 0 8px 0;width:100%}
 }
-@media(max-width:600px){
- .card{
-  grid-template-columns:auto 1fr;
- }
- .cardActions{
-  grid-column:1/-1;
-  display:grid;
-  grid-template-columns:1fr 1fr;
- }
- .streetImage{
-  max-height:70vh;
- }
+
+
+.mobileTabs{display:none}
+.moreBox{display:none;padding:10px 16px;border-bottom:1px solid #eee;background:#fafafa;gap:8px;flex-wrap:wrap}
+.moreBox.open{display:flex}
+.backupBox details{border:1px solid #dce6f1;border-radius:12px;background:#fff;padding:10px 12px;margin-bottom:10px}
+.backupBox summary{cursor:pointer;font-weight:800;color:#1769aa}
+.mainToolbar button{white-space:nowrap}
+@media(max-width:900px){
+ .mobileTabs{display:flex;position:sticky;top:0;z-index:20;background:white;border-bottom:1px solid #dce6f1;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+ .mobileTabs button{flex:1;border-radius:0;background:white;color:#1769aa;padding:13px 10px;border-bottom:3px solid transparent}
+ .mobileTabs button.active{background:#eef4fb;border-bottom-color:#1769aa}
+ body.mobile-patients #routePanel{display:none}
+ body.mobile-route #patientsPanel{display:none}
+ .wrap{padding:10px}
+ .panel{border-radius:12px}
+ .panel h2{font-size:16px;padding:12px}
+ .toolbar{padding:10px;gap:6px}
+ .toolbar input{min-width:100%;order:-1}
+ .toolbar button{flex:1;padding:11px 8px;font-size:13px}
+ .moreBox{padding:10px}
+ .moreBox button{flex:1;font-size:13px}
+ .notice{font-size:11px;padding:0 12px 10px}
+ .card{grid-template-columns:auto 1fr;gap:8px;padding:10px}
+ .cardActions{grid-column:1/-1;flex-direction:row}
+ .cardActions button{flex:1}
+ .routeItem{grid-template-columns:30px 1fr;align-items:start}
+ .moveBtns{grid-column:1/-1;justify-content:stretch}
+ .moveBtns button{flex:1}
+ .footerActions{position:static}
+ .textarea{min-height:80px}
+ .restoreCards{grid-template-columns:1fr}
 }
 
 @media(max-width:900px){
@@ -182,17 +181,25 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
   <p>Patients, ordre de tournée, itinéraires Google Maps fractionnés, Waze, sauvegarde automatique et export/import.</p>
 </div>
 
+<div class="mobileTabs">
+  <button id="tabPatients" class="active" onclick="showMobileTab('patients')">Patients</button>
+  <button id="tabRoute" onclick="showMobileTab('route')">Tournée</button>
+</div>
+
 <div class="wrap">
-  <section class="panel">
+  <section id="patientsPanel" class="panel">
     <h2>1. Liste des patients</h2>
 
-    <div class="toolbar">
+    <div class="toolbar mainToolbar">
       <input id="search" placeholder="Rechercher un nom, une rue, une ville…" oninput="renderPatients()">
-      <button class="green" onclick="openPatientForm()">+ Nouveau patient</button>
+      <button class="green" onclick="openPatientForm()">+ Patient</button>
+      <button class="secondary" onclick="toggleMorePatients()">Options</button>
+    </div>
+    <div id="morePatients" class="moreBox">
       <button onclick="selectVisible()">Ajouter visibles</button>
       <button class="secondary" onclick="clearSelection()">Tout décocher</button>
       <button class="orange" onclick="toggleImport()">Import texte</button>
-      <button class="secondary" onclick="toggleBackup()">Sauvegarde</button>
+      <button class="secondary" onclick="toggleBackup()">Sauvegarde / restauration</button>
     </div>
 
     <div id="importBox" class="importBox">
@@ -210,40 +217,37 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
       <div class="small" style="margin-bottom:8px">
         La sauvegarde complète contient les patients + l’ordre de tournée sélectionné.
       </div>
-      <div class="backupLine">
-        <button class="green" onclick="exportBackup()">Sauvegarde complète</button>
-        <button onclick="exportRouteOnly()">Sauver ordre seul</button>
+      <div class="backupActions">
+        <button class="green" onclick="exportBackup()">Sauvegarder tout</button>
+        <button onclick="exportRouteOnly()">Sauvegarder ordre</button>
         <button class="secondary" onclick="copyFullBackup()">Copier sauvegarde</button>
-        <button class="secondary" onclick="shareFullBackup()">Partager sauvegarde</button>
-        <button class="secondary" onclick="copyRouteBackup()">Copier ordre</button>
-        <button class="secondary" onclick="shareRouteBackup()">Partager ordre</button>
         <button class="danger" onclick="resetAllData()">Réinitialiser tout</button>
       </div>
 
-      <div class="fileRestoreZone">
-        <div class="small" style="margin-bottom:8px">
-          Restauration sur iPhone : appuie sur un bouton ci-dessous, puis choisis ton fichier JSON dans <b>Fichiers / iCloud Drive / Sur mon iPhone</b>.
+      <div class="restoreCards">
+        <div class="restoreCard">
+          <div class="restoreTitle">Restaurer sauvegarde complète</div>
+          <div class="restoreText">Patients + ordre de passage.</div>
+          <input id="backupFile" class="realFileInput" type="file" accept=".json,application/json,text/plain" onchange="importBackup(event)">
         </div>
 
-        <label for="backupFile" class="fileBtnLabel green">Restaurer sauvegarde complète</label>
-        <input id="backupFile" class="hiddenFileInput" type="file" accept=".json,application/json,text/plain" onchange="importBackup(event)">
-
-        <label for="routeFile" class="fileBtnLabel orange">Restaurer ordre seul</label>
-        <input id="routeFile" class="hiddenFileInput" type="file" accept=".json,application/json,text/plain" onchange="importRouteOnly(event)">
-
-        <div id="fileStatus" class="small" style="margin-top:8px"></div>
+        <div class="restoreCard">
+          <div class="restoreTitle">Restaurer uniquement l’ordre</div>
+          <div class="restoreText">Garde les patients actuels et remet l’ordre sauvegardé.</div>
+          <input id="routeFile" class="realFileInput" type="file" accept=".json,application/json,text/plain" onchange="importRouteOnly(event)">
+        </div>
       </div>
 
-      <div class="small" style="margin-top:10px">
-        Secours si iPhone refuse le fichier : copie/colle le JSON dans la zone ci-dessous.
-      </div>
+      <details class="pasteRestore">
+        <summary>Secours iPhone : restaurer en collant le JSON</summary>
+        <textarea id="backupText" class="textarea" style="margin-top:10px;min-height:120px" placeholder="Colle ici ta sauvegarde JSON, puis clique sur Restaurer JSON collé."></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+          <button class="green" onclick="restoreBackupFromText()">Restaurer JSON collé</button>
+          <button class="secondary" onclick="document.getElementById('backupText').value=''">Effacer</button>
+        </div>
+      </details>
 
-      <textarea id="backupText" class="textarea" style="margin-top:10px;min-height:120px" placeholder="La sauvegarde JSON apparaîtra ici. Tu peux aussi coller ici une sauvegarde JSON puis cliquer sur Restaurer JSON collé."></textarea>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-        <button class="green" onclick="restoreBackupFromText()">Restaurer JSON collé</button>
-        <button class="secondary" onclick="document.getElementById('backupText').value=''">Effacer zone</button>
-      </div>
+      <div id="restoreStatus" class="restoreStatus"></div>
     </div>
 
     <div class="notice">
@@ -253,15 +257,18 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
     <div id="patients" class="list"></div>
   </section>
 
-  <section class="panel">
+  <section id="routePanel" class="panel">
     <h2>2. Ordre de tournée</h2>
 
-    <div class="toolbar">
+    <div class="toolbar mainToolbar">
       <button class="green" onclick="openGoogleMapsFullOrFirst()">Google Maps</button>
+      <button onclick="openWazeNext()">Waze 1er arrêt</button>
+      <button class="secondary" onclick="toggleMoreRoute()">Options</button>
+    </div>
+    <div id="moreRoute" class="moreBox">
       <button class="orange" onclick="renderSegments(true)">Fractionner Google Maps</button>
-      <button onclick="openWazeNext()">Waze vers le 1er arrêt</button>
-      <button class="secondary" onclick="copyRoute()">Copier</button>
-      <button class="danger" onclick="resetRoute()">Vider</button>
+      <button class="secondary" onclick="copyRoute()">Copier la tournée</button>
+      <button class="danger" onclick="resetRoute()">Vider la tournée</button>
     </div>
 
     <div class="notice">
@@ -311,32 +318,10 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
   </div>
 </div>
 
-
-<div id="streetModal" class="streetModal" onclick="streetBackdropClose(event)">
-  <div class="streetContent">
-    <div class="streetHeader">
-      <div>
-        <div id="streetTitle" class="streetTitle">Vue de la maison</div>
-        <div id="streetAddress" class="streetAddress"></div>
-      </div>
-      <button class="danger" onclick="closeStreetView()">✖ Fermer</button>
-    </div>
-
-    <div class="streetBody">
-      <img id="streetImage" class="streetImage" src="" alt="Vue Street View de la maison">
-      <div class="streetFallback">
-        Si la vue ne s’affiche pas correctement, utilise le bouton :
-        <a id="streetExternalLink" href="#" target="_blank" rel="noopener">ouvrir dans Google Maps</a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 const STORAGE_KEY = "tournee_infirmiere_patients_v4_segments";
 const SELECTED_KEY = "tournee_infirmiere_selection_v4_segments";
 const GOOGLE_MAX_STOPS_PER_SEGMENT = 9;
-const GOOGLE_STREET_VIEW_API_KEY = "AIzaSyDXeTRU9Ex3nDGMgkH_r4Z8SEFXprnIcns";
 
 const defaultPatients = [
  {name:'CACHOIR Justine', address:'294 rue Lagrange, 59174 La Sentinelle', time:'07:10', note:''},
@@ -432,9 +417,6 @@ function renderPatients(){
     </div>
     <div class="cardActions">
       <button onclick="editPatient(${index})">Modifier</button>
-      <button class="green" onclick="openStreetView(${index})">🏠 Voir maison</button>
-      <button onclick="openPatientMaps(${index})">📍 Maps</button>
-      <button class="orange" onclick="openPatientWaze(${index})">🚗 Waze</button>
       <button class="danger" onclick="deletePatient(${index})">Supprimer</button>
     </div>
   `;
@@ -656,77 +638,57 @@ function getRouteBackupData(){
 
 function exportBackup(){
  const data = getFullBackupData();
- showBackupText(data);
+ setBackupText(data);
  downloadJson(data, 'sauvegarde-tournee-complete-' + today() + '.json');
-}
-
-function setFileStatus(msg){
- const el = document.getElementById('fileStatus');
- if(el) el.textContent = msg || '';
 }
 
 function importBackup(event){
  const file = event.target.files && event.target.files[0];
  if(!file){
-  setFileStatus('Aucun fichier sélectionné.');
+  setRestoreStatus('Aucun fichier choisi.', true);
   return;
  }
- setFileStatus('Fichier choisi : ' + file.name);
+
+ setRestoreStatus('Lecture du fichier : ' + file.name, false);
 
  readJsonFile(file, data => {
-  if(!data || !Array.isArray(data.patients)){ alert('Fichier de sauvegarde invalide.'); return; }
-  if(!confirm('Restaurer cette sauvegarde complète ? Les données actuelles seront remplacées.')) return;
-
-  patients = data.patients.map(p => ({
-   name: String(p.name || '').trim(),
-   address: String(p.address || '').trim(),
-   time: String(p.time || '').trim(),
-   note: String(p.note || '').trim()
-  })).filter(p => p.name && p.address);
-
-  selected = Array.isArray(data.selected) ? data.selected.filter(i => Number.isInteger(i) && i >= 0 && i < patients.length) : [];
-
-  saveAll();
-  renderPatients();
-  renderRoute();
-  renderSegments(false);
-  setFileStatus('Sauvegarde complète restaurée : ' + file.name); alert('Sauvegarde restaurée.');
+  if(!data || !Array.isArray(data.patients)){
+   setRestoreStatus('Fichier invalide : ce n’est pas une sauvegarde complète.', true);
+   alert('Fichier de sauvegarde invalide.');
+   return;
+  }
+  restoreJsonData(data);
+  setRestoreStatus('Sauvegarde restaurée depuis : ' + file.name, false);
  });
+
  event.target.value = '';
 }
 
 function exportRouteOnly(){
  const data = getRouteBackupData();
- showBackupText(data);
+ setBackupText(data);
  downloadJson(data, 'ordre-tournee-' + today() + '.json');
 }
 
 function importRouteOnly(event){
  const file = event.target.files && event.target.files[0];
  if(!file){
-  setFileStatus('Aucun fichier sélectionné.');
+  setRestoreStatus('Aucun fichier choisi.', true);
   return;
  }
- setFileStatus('Fichier choisi : ' + file.name);
+
+ setRestoreStatus('Lecture du fichier : ' + file.name, false);
 
  readJsonFile(file, data => {
-  if(!data || !Array.isArray(data.route)){ alert('Fichier d’ordre invalide.'); return; }
-
-  const newSelected = [];
-  data.route.forEach(item => {
-   const name = norm(item.name || '');
-   const address = norm(item.address || '');
-   const index = patients.findIndex(p => norm(p.name) === name && norm(p.address) === address);
-   if(index >= 0 && !newSelected.includes(index)) newSelected.push(index);
-  });
-
-  selected = newSelected;
-  saveAll();
-  renderPatients();
-  renderRoute();
-  renderSegments(false);
-  setFileStatus('Ordre restauré : ' + file.name); alert(newSelected.length + ' patient(s) restauré(s) dans l’ordre.');
+  if(!data || !Array.isArray(data.route)){
+   setRestoreStatus('Fichier invalide : ce n’est pas une sauvegarde d’ordre.', true);
+   alert('Fichier d’ordre invalide.');
+   return;
+  }
+  restoreJsonData(data);
+  setRestoreStatus('Ordre restauré depuis : ' + file.name, false);
  });
+
  event.target.value = '';
 }
 
@@ -846,136 +808,64 @@ function openWazeNext(){
  window.open('https://waze.com/ul?q=' + enc(p.address) + '&navigate=yes', '_blank');
 }
 
-function showBackupText(data){
+function setRestoreStatus(message, isError){
+ const el = document.getElementById('restoreStatus');
+ if(el){
+  el.style.color = isError ? '#c62828' : '#188038';
+  el.textContent = message || '';
+ }
+}
+
+function setBackupText(data){
  const area = document.getElementById('backupText');
- if(area){
-  area.value = JSON.stringify(data, null, 2);
- }
+ if(area) area.value = JSON.stringify(data, null, 2);
 }
 
-async function copyTextToClipboard(text){
- try{
-  await navigator.clipboard.writeText(text);
-  alert('Sauvegarde copiée. Tu peux la coller dans Notes, Mail, WhatsApp, etc.');
- }catch(e){
-  const area = document.getElementById('backupText');
-  if(area){
-   area.value = text;
-   area.focus();
-   area.select();
-  }
-  alert('Copie automatique impossible. Sélectionne le texte affiché puis copie-le manuellement.');
- }
-}
-
-function copyFullBackup(){
+async function copyFullBackup(){
  const data = getFullBackupData();
  const text = JSON.stringify(data, null, 2);
- showBackupText(data);
- copyTextToClipboard(text);
-}
-
-function copyRouteBackup(){
- const data = getRouteBackupData();
- const text = JSON.stringify(data, null, 2);
- showBackupText(data);
- copyTextToClipboard(text);
-}
-
-async function shareJsonData(data, filename){
- const text = JSON.stringify(data, null, 2);
- showBackupText(data);
-
+ setBackupText(data);
  try{
-  const file = new File([text], filename, {type:'application/json'});
-  if(navigator.canShare && navigator.canShare({files:[file]})){
-   await navigator.share({files:[file], title:filename, text:'Sauvegarde tournée infirmière'});
-   return;
-  }
- }catch(e){}
-
- try{
-  if(navigator.share){
-   await navigator.share({title:filename, text:text});
-   return;
-  }
- }catch(e){}
-
- copyTextToClipboard(text);
-}
-
-function shareFullBackup(){
- shareJsonData(getFullBackupData(), 'sauvegarde-tournee-complete-' + today() + '.json');
-}
-
-function shareRouteBackup(){
- shareJsonData(getRouteBackupData(), 'ordre-tournee-' + today() + '.json');
+  await navigator.clipboard.writeText(text);
+  setRestoreStatus('Sauvegarde copiée. Tu peux la coller dans Notes ou Mail.', false);
+  alert('Sauvegarde copiée.');
+ }catch(e){
+  setRestoreStatus('Copie automatique impossible. Le JSON est affiché dans la zone de secours.', true);
+  alert('Copie impossible automatiquement. Le JSON est affiché dans la zone de secours.');
+ }
 }
 
 function restoreBackupFromText(){
  const area = document.getElementById('backupText');
  const text = area ? area.value.trim() : '';
  if(!text){
-  alert('Colle d’abord une sauvegarde JSON dans la zone.');
+  alert('Colle d’abord une sauvegarde JSON.');
   return;
  }
 
  try{
   const data = JSON.parse(text);
-
-  if(Array.isArray(data.patients)){
-   if(!confirm('Restaurer cette sauvegarde complète ? Les données actuelles seront remplacées.')) return;
-
-   patients = data.patients.map(p => ({
-    name: String(p.name || '').trim(),
-    address: String(p.address || '').trim(),
-    time: String(p.time || '').trim(),
-    note: String(p.note || '').trim()
-   })).filter(p => p.name && p.address);
-
-   selected = Array.isArray(data.selected) ? data.selected.filter(i => Number.isInteger(i) && i >= 0 && i < patients.length) : [];
-
-   saveAll();
-   renderPatients();
-   renderRoute();
-   renderSegments(false);
-   alert('Sauvegarde complète restaurée.');
-   return;
-  }
-
-  if(Array.isArray(data.route)){
-   const newSelected = [];
-   data.route.forEach(item => {
-    const name = norm(item.name || '');
-    const address = norm(item.address || '');
-    const index = patients.findIndex(p => norm(p.name) === name && norm(p.address) === address);
-    if(index >= 0 && !newSelected.includes(index)) newSelected.push(index);
-   });
-
-   selected = newSelected;
-   saveAll();
-   renderPatients();
-   renderRoute();
-   renderSegments(false);
-   setFileStatus('Ordre restauré : ' + file.name); alert(newSelected.length + ' patient(s) restauré(s) dans l’ordre.');
-   return;
-  }
-
-  alert('JSON reconnu, mais ce n’est pas une sauvegarde valide.');
+  restoreJsonData(data);
  }catch(e){
-  alert('JSON invalide. Vérifie que tu as bien collé toute la sauvegarde.');
+  setRestoreStatus('JSON invalide.', true);
+  alert('JSON invalide.');
  }
 }
 
 function downloadJson(data, filename){
- showBackupText(data);
-
+ setBackupText(data);
  const text = JSON.stringify(data, null, 2);
+
  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
- if(isIOS){
-  shareJsonData(data, filename);
-  return;
+ if(isIOS && navigator.share){
+  try{
+   const file = new File([text], filename, {type:'application/json'});
+   if(navigator.canShare && navigator.canShare({files:[file]})){
+    navigator.share({files:[file], title:filename, text:'Sauvegarde tournée infirmière'});
+    return;
+   }
+  }catch(e){}
  }
 
  const blob = new Blob([text], {type:'application/json'});
@@ -987,6 +877,53 @@ function downloadJson(data, filename){
  a.click();
  a.remove();
  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+ setRestoreStatus('Sauvegarde générée. Si aucun téléchargement ne s’ouvre sur iPhone, utilise Copier sauvegarde.', false);
+}
+
+function restoreJsonData(data){
+ if(data && Array.isArray(data.patients)){
+  if(!confirm('Restaurer cette sauvegarde complète ? Les données actuelles seront remplacées.')) return;
+
+  patients = data.patients.map(p => ({
+   name: String(p.name || '').trim(),
+   address: String(p.address || '').trim(),
+   time: String(p.time || '').trim(),
+   note: String(p.note || '').trim()
+  })).filter(p => p.name && p.address);
+
+  selected = Array.isArray(data.selected) ? data.selected.filter(i => Number.isInteger(i) && i >= 0 && i < patients.length) : [];
+
+  saveAll();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+  setRestoreStatus('Sauvegarde complète restaurée.', false);
+  alert('Sauvegarde restaurée.');
+  return;
+ }
+
+ if(data && Array.isArray(data.route)){
+  const newSelected = [];
+  data.route.forEach(item => {
+   const name = norm(item.name || '');
+   const address = norm(item.address || '');
+   const index = patients.findIndex(p => norm(p.name) === name && norm(p.address) === address);
+   if(index >= 0 && !newSelected.includes(index)) newSelected.push(index);
+  });
+
+  selected = newSelected;
+  saveAll();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+  setRestoreStatus(newSelected.length + ' patient(s) restauré(s) dans l’ordre.', false);
+  alert(newSelected.length + ' patient(s) restauré(s) dans l’ordre.');
+  return;
+ }
+
+ setRestoreStatus('Fichier JSON non reconnu.', true);
+ alert('Fichier JSON non reconnu.');
 }
 
 function readJsonFile(file, callback){
@@ -1018,69 +955,33 @@ document.getElementById('patientFormOverlay').addEventListener('click', function
 });
 
 document.addEventListener('keydown', function(e){
- if(e.key === 'Escape'){
-  const streetModal = document.getElementById('streetModal');
-  if(streetModal && streetModal.style.display === 'flex'){
-   closeStreetView();
-   return;
-  }
-  closePatientForm();
- }
+ if(e.key === 'Escape') closePatientForm();
 });
 
 
-function openPatientMaps(index){
- const p = patients[index];
- if(!p || !p.address){ alert('Adresse introuvable.'); return; }
- window.open('https://www.google.com/maps/search/?api=1&query=' + enc(p.address), '_blank');
+function toggleMorePatients(){
+ document.getElementById('morePatients').classList.toggle('open');
 }
-
-function openPatientWaze(index){
- const p = patients[index];
- if(!p || !p.address){ alert('Adresse introuvable.'); return; }
- window.open('https://waze.com/ul?q=' + enc(p.address) + '&navigate=yes', '_blank');
+function toggleMoreRoute(){
+ document.getElementById('moreRoute').classList.toggle('open');
 }
-
-function openStreetView(index){
- const p = patients[index];
- if(!p || !p.address){ alert('Adresse introuvable.'); return; }
-
- const title = p.name || 'Vue de la maison';
- const address = p.address || '';
-
- document.getElementById('streetTitle').textContent = '🏠 ' + title;
- document.getElementById('streetAddress').textContent = address;
-
- const mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' + enc(address);
-
- const streetUrl =
-  'https://maps.googleapis.com/maps/api/streetview' +
-  '?size=800x500' +
-  '&location=' + enc(address) +
-  '&fov=80' +
-  '&heading=0' +
-  '&pitch=0' +
-  '&source=outdoor' +
-  '&key=' + GOOGLE_STREET_VIEW_API_KEY;
-
- document.getElementById('streetExternalLink').href = mapsUrl;
- document.getElementById('streetImage').src = streetUrl;
- document.getElementById('streetModal').style.display = 'flex';
-}
-
-function closeStreetView(){
- const modal = document.getElementById('streetModal');
- const image = document.getElementById('streetImage');
- if(image) image.src = '';
- if(modal) modal.style.display = 'none';
-}
-
-function streetBackdropClose(event){
- if(event.target && event.target.id === 'streetModal'){
-  closeStreetView();
+function showMobileTab(which){
+ document.body.classList.remove('mobile-patients','mobile-route');
+ document.getElementById('tabPatients').classList.remove('active');
+ document.getElementById('tabRoute').classList.remove('active');
+ if(which === 'route'){
+  document.body.classList.add('mobile-route');
+  document.getElementById('tabRoute').classList.add('active');
+ }else{
+  document.body.classList.add('mobile-patients');
+  document.getElementById('tabPatients').classList.add('active');
  }
 }
+function initMobileView(){
+ if(window.innerWidth <= 900) showMobileTab('patients');
+}
 
+initMobileView();
 renderPatients();
 renderRoute();
 renderSegments(false);
