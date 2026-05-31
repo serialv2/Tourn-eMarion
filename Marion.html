@@ -182,6 +182,25 @@ button.orange{background:#f57c00}
  </section>
 </div>
 
+
+<div id="houseOverlay" class="houseOverlay">
+ <div class="houseBox">
+  <div class="houseHeader">
+   <h3 id="houseTitle">Maison du patient</h3>
+   <button class="houseClose" onclick="closeHousePopup()">Fermer</button>
+  </div>
+  <div class="houseContent">
+   <img id="housePhoto" class="housePhoto" alt="Photo Street View de la maison">
+   <div id="houseAddress" class="houseAddress"></div>
+   <div class="houseButtons">
+    <button class="green" onclick="openCurrentHouseMaps()">Ouvrir Maps</button>
+    <button onclick="openCurrentHouseWaze()">Ouvrir Waze</button>
+    <button class="secondary" onclick="closeHousePopup()">Retour tournée</button>
+   </div>
+  </div>
+ </div>
+</div>
+
 <div id="patientFormOverlay" class="formOverlay">
  <div class="formBox">
   <h2 id="formTitle">Nouveau patient</h2>
