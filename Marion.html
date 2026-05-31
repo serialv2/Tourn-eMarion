@@ -3,26 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tournée infirmière - patients et itinéraire</title>
-
+<title>Tournées infirmières</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}
-.header{background:#1769aa;color:white;padding:18px 20px;position:sticky;top:0;z-index:10;box-shadow:0 2px 12px #0002}
+.header{background:#1769aa;color:white;padding:16px;box-shadow:0 2px 12px #0002}
 .header h1{margin:0;font-size:22px}
 .header p{margin:6px 0 0;font-size:13px;opacity:.9}
+.tourTabs,.mobileTabs{display:flex;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:0;z-index:20}
+.tourTabs button,.mobileTabs button{flex:1;border-radius:0;background:white;color:#1769aa;padding:13px 8px;border:0;border-bottom:3px solid transparent}
+.tourTabs button.active,.mobileTabs button.active{background:#eef4fb;border-bottom-color:#1769aa}
+.mobileTabs{display:none;top:48px}
 .wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
 .panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}
 .panel h2{font-size:18px;margin:0;padding:14px 16px;background:#eef4fb;border-bottom:1px solid #dce6f1}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid #eee}
-.toolbar input{flex:1;min-width:160px;padding:10px;border:1px solid #ccc;border-radius:10px}
+.toolbar input{flex:1;min-width:180px;padding:10px;border:1px solid #ccc;border-radius:10px}
 button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:#1769aa;color:white}
 button.secondary{background:#667085}
 button.danger{background:#c62828}
 button.green{background:#188038}
 button.orange{background:#f57c00}
-button:disabled{background:#cbd5e1;cursor:not-allowed}
-.list{padding:12px;max-height:calc(100vh - 230px);overflow:auto}
+.list{padding:12px;max-height:calc(100vh - 270px);overflow:auto}
 .card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:white;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start}
 .card.selected{background:#e8f5e9;border-color:#188038}
 .name{font-weight:800;font-size:15px}
@@ -32,14 +34,21 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
 .cardActions button{padding:7px 8px;font-size:12px}
 .routeItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:10px;padding:10px;background:white}
 .rank{width:28px;height:28px;border-radius:50%;background:#1769aa;color:white;display:flex;align-items:center;justify-content:center;font-weight:800}
-.moveBtns{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
-.moveBtns button{padding:7px 8px;background:#eef4fb;color:#1769aa}
-.moveBtns button.danger{background:#fde8e8;color:#c62828}
-.empty{color:#667085;text-align:center;padding:30px 10px}
+.routeActions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.routeActions button{padding:7px 8px;background:#eef4fb;color:#1769aa}
+.routeActions button.houseBtn{background:#fff7ed;color:#c2410c}
+.routeActions button.goBtn{background:#188038;color:white}
+.routeActions button.mapBtn{background:#e8f5e9;color:#188038}
+.routeActions button.danger{background:#fde8e8;color:#c62828}
 .notice{font-size:12px;color:#667085;padding:0 16px 12px;line-height:1.4}
-.footerActions{position:sticky;bottom:0;background:white;border-top:1px solid #eee;padding:12px 16px;display:flex;flex-wrap:wrap;gap:8px}
-.small{font-size:12px;color:#667085}
-.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}
+.empty{color:#667085;text-align:center;padding:30px 10px}
+.moreBox,.importBox,.backupBox{display:none;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa}
+.moreBox.open{display:flex;gap:8px;flex-wrap:wrap}
+.importBox textarea,.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}
+.segmentBox{padding:12px 16px;border-bottom:1px solid #eee;background:#fff;display:none}
+.segmentTitle{font-weight:800;margin-bottom:8px}
+.segmentButtons{display:flex;gap:8px;flex-wrap:wrap}
+.segmentButtons button{background:#188038}
 .formOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:none;align-items:center;justify-content:center;padding:16px}
 .formBox{width:100%;max-width:620px;background:white;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
 .formBox h2{margin:0;padding:16px 18px;background:#1769aa;color:white;font-size:20px}
@@ -47,1001 +56,296 @@ button:disabled{background:#cbd5e1;cursor:not-allowed}
 .field{display:flex;flex-direction:column;gap:5px}
 .field.full{grid-column:1/-1}
 .field label{font-size:13px;font-weight:700;color:#344054}
-.field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial,Helvetica,sans-serif}
+.field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial}
 .field textarea{min-height:80px;resize:vertical}
 .formButtons{padding:14px 16px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.importBox,.backupBox{display:none;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa}
-.importBox textarea{width:100%;min-height:130px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}
-.backupLine{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.backupLine input[type=file]{background:white;border:1px solid #ddd;border-radius:10px;padding:8px;max-width:100%}
-.segmentBox{padding:12px 16px;border-bottom:1px solid #eee;background:#fff}
-.segmentTitle{font-weight:800;margin-bottom:8px}
-.segmentButtons{display:flex;gap:8px;flex-wrap:wrap}
-.segmentButtons button{background:#188038}
-.segmentButtons button.secondary{background:#1769aa}
-.segmentInfo{font-size:12px;color:#667085;margin-top:8px;line-height:1.4}
-
-.backupActions{
- display:flex;
- gap:8px;
- flex-wrap:wrap;
- margin-bottom:12px;
-}
-.restoreCards{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:10px;
- margin-top:10px;
-}
-.restoreCard{
- border:1px solid #dce6f1;
- background:white;
- border-radius:14px;
- padding:12px;
- box-shadow:0 1px 6px rgba(0,0,0,.04);
-}
-.restoreTitle{
- font-weight:800;
- color:#1769aa;
- margin-bottom:4px;
-}
-.restoreText{
- font-size:12px;
- color:#667085;
- margin-bottom:10px;
-}
-.realFileInput{
- width:100%;
- display:block;
- padding:10px;
- border:1px solid #cfd8e3;
- border-radius:10px;
- background:#f8fafc;
- font-size:13px;
- color:#344054;
-}
-.realFileInput::file-selector-button{
- border:0;
- border-radius:8px;
- padding:9px 10px;
- margin-right:10px;
- background:#1769aa;
- color:white;
- font-weight:700;
-}
-.pasteRestore{
- margin-top:12px;
- border:1px solid #dce6f1;
- border-radius:12px;
- background:#fff;
- padding:10px 12px;
-}
-.pasteRestore summary{
- cursor:pointer;
- font-weight:800;
- color:#1769aa;
-}
-.restoreStatus{
- margin-top:10px;
- font-size:12px;
- color:#188038;
- font-weight:700;
-}
-
-.routeActions{
- display:flex;
- gap:5px;
- flex-wrap:wrap;
- justify-content:flex-end;
-}
-.routeActions button{
- padding:7px 8px;
- background:#eef4fb;
- color:#1769aa;
-}
-.routeActions button.houseBtn{
- background:#fff7ed;
- color:#c2410c;
-}
-.routeActions button.goBtn{
- background:#188038;
- color:white;
-}
-.routeActions button.mapBtn{
- background:#e8f5e9;
- color:#188038;
-}
-@media(max-width:900px){
- .routeActions{
-  grid-column:1/-1;
-  justify-content:stretch;
- }
- .routeActions button{
-  flex:1;
-  font-size:13px;
- }
-}
-
-@media(max-width:650px){
- .restoreCards{grid-template-columns:1fr}
- .realFileInput{font-size:12px}
- .realFileInput::file-selector-button{display:block;margin:0 0 8px 0;width:100%}
-}
-
-
-.mobileTabs{display:none}
-.moreBox{display:none;padding:10px 16px;border-bottom:1px solid #eee;background:#fafafa;gap:8px;flex-wrap:wrap}
-.moreBox.open{display:flex}
 .backupBox details{border:1px solid #dce6f1;border-radius:12px;background:#fff;padding:10px 12px;margin-bottom:10px}
 .backupBox summary{cursor:pointer;font-weight:800;color:#1769aa}
-.mainToolbar button{white-space:nowrap}
+.realFileInput{width:100%;display:block;padding:10px;border:1px solid #cfd8e3;border-radius:10px;background:#f8fafc;font-size:13px}
+.restoreCards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.restoreCard{border:1px solid #dce6f1;background:white;border-radius:14px;padding:12px}
+.restoreTitle{font-weight:800;color:#1769aa;margin-bottom:4px}
+.restoreText{font-size:12px;color:#667085;margin-bottom:10px}
 @media(max-width:900px){
- .mobileTabs{display:flex;position:sticky;top:0;z-index:20;background:white;border-bottom:1px solid #dce6f1;box-shadow:0 2px 8px rgba(0,0,0,.08)}
- .mobileTabs button{flex:1;border-radius:0;background:white;color:#1769aa;padding:13px 10px;border-bottom:3px solid transparent}
- .mobileTabs button.active{background:#eef4fb;border-bottom-color:#1769aa}
+ .mobileTabs{display:flex}
  body.mobile-patients #routePanel{display:none}
  body.mobile-route #patientsPanel{display:none}
- .wrap{padding:10px}
+ .wrap{grid-template-columns:1fr;padding:10px}
  .panel{border-radius:12px}
- .panel h2{font-size:16px;padding:12px}
- .toolbar{padding:10px;gap:6px}
+ .list{max-height:none}
  .toolbar input{min-width:100%;order:-1}
- .toolbar button{flex:1;padding:11px 8px;font-size:13px}
- .moreBox{padding:10px}
- .moreBox button{flex:1;font-size:13px}
- .notice{font-size:11px;padding:0 12px 10px}
+ .toolbar button{flex:1;font-size:13px;padding:11px 8px}
  .card{grid-template-columns:auto 1fr;gap:8px;padding:10px}
  .cardActions{grid-column:1/-1;flex-direction:row}
  .cardActions button{flex:1}
- .routeItem{grid-template-columns:30px 1fr;align-items:start}
- .moveBtns{grid-column:1/-1;justify-content:stretch}
- .moveBtns button{flex:1}
- .footerActions{position:static}
- .textarea{min-height:80px}
- .restoreCards{grid-template-columns:1fr}
-}
-
-@media(max-width:900px){
- .wrap{grid-template-columns:1fr}
- .list{max-height:none}
- .header{position:static}
+ .routeItem{grid-template-columns:30px 1fr}
+ .routeActions{grid-column:1/-1;justify-content:stretch}
+ .routeActions button{flex:1;font-size:13px}
  .formContent{grid-template-columns:1fr}
+ .restoreCards{grid-template-columns:1fr}
 }
 </style>
 </head>
-
 <body>
 <div class="header">
-  <h1>Organisation de tournée infirmière</h1>
-  <p>Patients, ordre de tournée, itinéraires Google Maps fractionnés, Waze, sauvegarde automatique et export/import.</p>
+ <h1>Tournées infirmières</h1>
+ <p>Choisis la tournée, sélectionne les patients, organise l’ordre, puis lance Waze ou Google Maps.</p>
+</div>
+
+<div class="tourTabs">
+ <button id="tourTab-trith" class="active" onclick="switchTour('trith')">Trith</button>
+ <button id="tourTab-valenciennes" onclick="switchTour('valenciennes')">Valenciennes</button>
 </div>
 
 <div class="mobileTabs">
-  <button id="tabPatients" class="active" onclick="showMobileTab('patients')">Patients</button>
-  <button id="tabRoute" onclick="showMobileTab('route')">Tournée</button>
+ <button id="tabPatients" class="active" onclick="showMobileTab('patients')">Patients</button>
+ <button id="tabRoute" onclick="showMobileTab('route')">Tournée</button>
 </div>
 
 <div class="wrap">
-  <section id="patientsPanel" class="panel">
-    <h2>1. Liste des patients</h2>
+ <section id="patientsPanel" class="panel">
+  <h2 id="patientsTitle">1. Patients - Trith</h2>
+  <div class="toolbar">
+   <input id="search" placeholder="Rechercher nom, rue, ville…" oninput="renderPatients()">
+   <button class="green" onclick="openPatientForm()">+ Patient</button>
+   <button class="secondary" onclick="toggleMorePatients()">Options</button>
+  </div>
+  <div id="morePatients" class="moreBox">
+   <button onclick="selectVisible()">Ajouter visibles</button>
+   <button class="secondary" onclick="clearSelection()">Tout décocher</button>
+   <button class="orange" onclick="toggleImport()">Import texte</button>
+   <button class="secondary" onclick="toggleBackup()">Sauvegarde</button>
+  </div>
 
-    <div class="toolbar mainToolbar">
-      <input id="search" placeholder="Rechercher un nom, une rue, une ville…" oninput="renderPatients()">
-      <button class="green" onclick="openPatientForm()">+ Patient</button>
-      <button class="secondary" onclick="toggleMorePatients()">Options</button>
+  <div id="importBox" class="importBox">
+   <div class="meta">Format : Nom;Adresse;Horaire;Note</div>
+   <textarea id="importText"></textarea>
+   <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+    <button class="green" onclick="importPatients()">Importer</button>
+    <button class="secondary" onclick="toggleImport()">Fermer</button>
+   </div>
+  </div>
+
+  <div id="backupBox" class="backupBox">
+   <details open>
+    <summary>Sauvegarder</summary>
+    <button class="green" onclick="exportBackup()">Sauvegarder cette tournée</button>
+    <button onclick="exportRouteOnly()">Sauvegarder ordre</button>
+    <button class="secondary" onclick="copyFullBackup()">Copier sauvegarde</button>
+   </details>
+   <details>
+    <summary>Restaurer depuis fichier</summary>
+    <div class="restoreCards">
+     <div class="restoreCard">
+      <div class="restoreTitle">Sauvegarde complète</div>
+      <div class="restoreText">Patients + ordre de cette tournée.</div>
+      <input id="backupFile" class="realFileInput" type="file" accept=".json,application/json,text/plain" onchange="importBackup(event)">
+     </div>
+     <div class="restoreCard">
+      <div class="restoreTitle">Ordre seul</div>
+      <div class="restoreText">Garde les patients actuels.</div>
+      <input id="routeFile" class="realFileInput" type="file" accept=".json,application/json,text/plain" onchange="importRouteOnly(event)">
+     </div>
     </div>
-    <div id="morePatients" class="moreBox">
-      <button onclick="selectVisible()">Ajouter visibles</button>
-      <button class="secondary" onclick="clearSelection()">Tout décocher</button>
-      <button class="orange" onclick="toggleImport()">Import texte</button>
-      <button class="secondary" onclick="toggleBackup()">Sauvegarde / restauration</button>
-    </div>
+   </details>
+   <details>
+    <summary>Secours : JSON collé</summary>
+    <textarea id="backupText" class="textarea" placeholder="Colle ici ta sauvegarde JSON"></textarea>
+    <button class="green" onclick="restoreBackupFromText()">Restaurer JSON collé</button>
+   </details>
+   <button class="danger" onclick="resetCurrentTour()">Réinitialiser cette tournée</button>
+   <div id="restoreStatus" class="meta"></div>
+  </div>
 
-    <div id="importBox" class="importBox">
-      <div class="small" style="margin-bottom:8px">
-        Format conseillé : <b>Nom;Adresse;Horaire;Note</b> — une ligne par patient.
-      </div>
-      <textarea id="importText" placeholder="DUPONT Jean;12 rue Victor Hugo, 59125 Trith-Saint-Léger;08:00 / 18:00;Pansement"></textarea>
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="green" onclick="importPatients()">Importer</button>
-        <button class="secondary" onclick="toggleImport()">Fermer</button>
-      </div>
-    </div>
+  <div class="notice">Les données sont séparées pour Trith et Valenciennes.</div>
+  <div id="patients" class="list"></div>
+ </section>
 
-    <div id="backupBox" class="backupBox">
-      <div class="small" style="margin-bottom:8px">
-        La sauvegarde complète contient les patients + l’ordre de tournée sélectionné.
-      </div>
-      <div class="backupActions">
-        <button class="green" onclick="exportBackup()">Sauvegarder tout</button>
-        <button onclick="exportRouteOnly()">Sauvegarder ordre</button>
-        <button class="secondary" onclick="copyFullBackup()">Copier sauvegarde</button>
-        <button class="danger" onclick="resetAllData()">Réinitialiser tout</button>
-      </div>
-
-      <div class="restoreCards">
-        <div class="restoreCard">
-          <div class="restoreTitle">Restaurer sauvegarde complète</div>
-          <div class="restoreText">Patients + ordre de passage.</div>
-          <input id="backupFile" class="realFileInput" type="file" accept=".json,application/json,text/plain" onchange="importBackup(event)">
-        </div>
-
-        <div class="restoreCard">
-          <div class="restoreTitle">Restaurer uniquement l’ordre</div>
-          <div class="restoreText">Garde les patients actuels et remet l’ordre sauvegardé.</div>
-          <input id="routeFile" class="realFileInput" type="file" accept=".json,application/json,text/plain" onchange="importRouteOnly(event)">
-        </div>
-      </div>
-
-      <details class="pasteRestore">
-        <summary>Secours iPhone : restaurer en collant le JSON</summary>
-        <textarea id="backupText" class="textarea" style="margin-top:10px;min-height:120px" placeholder="Colle ici ta sauvegarde JSON, puis clique sur Restaurer JSON collé."></textarea>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
-          <button class="green" onclick="restoreBackupFromText()">Restaurer JSON collé</button>
-          <button class="secondary" onclick="document.getElementById('backupText').value=''">Effacer</button>
-        </div>
-      </details>
-
-      <div id="restoreStatus" class="restoreStatus"></div>
-    </div>
-
-    <div class="notice">
-      Sauvegarde automatique dans ce navigateur. Pour ne rien perdre si tu changes de téléphone/PC, utilise “Télécharger sauvegarde complète”.
-    </div>
-
-    <div id="patients" class="list"></div>
-  </section>
-
-  <section id="routePanel" class="panel">
-    <h2>2. Ordre de tournée</h2>
-
-    <div class="toolbar mainToolbar">
-      <button class="green" onclick="openGoogleMapsFullOrFirst()">Google Maps</button>
-      <button onclick="openWazeNext()">Waze 1er arrêt</button>
-      <button class="secondary" onclick="toggleMoreRoute()">Options</button>
-    </div>
-    <div id="moreRoute" class="moreBox">
-      <button class="orange" onclick="renderSegments(true)">Fractionner Google Maps</button>
-      <button class="secondary" onclick="copyRoute()">Copier la tournée</button>
-      <button class="danger" onclick="resetRoute()">Vider la tournée</button>
-    </div>
-
-    <div class="notice">
-      Pour plus de 9 étapes, clique sur “Fractionner Google Maps”. Pour partir vers un patient précis, utilise “🚗 Aller à” sur sa ligne.
-    </div>
-
-    <div id="segments" class="segmentBox" style="display:none"></div>
-
-    <div id="route" class="list"></div>
-
-    <div class="footerActions">
-      <textarea id="routeText" class="textarea" readonly placeholder="La tournée copiée apparaîtra ici…"></textarea>
-    </div>
-  </section>
+ <section id="routePanel" class="panel">
+  <h2 id="routeTitle">2. Ordre de tournée - Trith</h2>
+  <div class="toolbar">
+   <button class="green" onclick="openGoogleMapsFullOrFirst()">Google Maps</button>
+   <button onclick="openWazeNext()">Waze 1er arrêt</button>
+   <button class="secondary" onclick="toggleMoreRoute()">Options</button>
+  </div>
+  <div id="moreRoute" class="moreBox">
+   <button class="orange" onclick="renderSegments(true)">Fractionner Google Maps</button>
+   <button class="secondary" onclick="copyRoute()">Copier tournée</button>
+   <button class="danger" onclick="resetRoute()">Vider tournée</button>
+  </div>
+  <div class="notice">Sur chaque patient, le bouton <b>🚗 Aller à</b> ouvre Waze directement vers son adresse.</div>
+  <div id="segments" class="segmentBox"></div>
+  <div id="route" class="list"></div>
+  <div style="padding:12px 16px;border-top:1px solid #eee">
+   <textarea id="routeText" class="textarea" readonly placeholder="La tournée copiée apparaîtra ici…"></textarea>
+  </div>
+ </section>
 </div>
 
 <div id="patientFormOverlay" class="formOverlay">
-  <div class="formBox">
-    <h2 id="formTitle">Nouveau patient</h2>
-
-    <div class="formContent">
-      <div class="field">
-        <label for="patientName">Nom / Prénom *</label>
-        <input id="patientName" placeholder="Ex : DUPONT Jean">
-      </div>
-
-      <div class="field">
-        <label for="patientTime">Horaires</label>
-        <input id="patientTime" placeholder="Ex : 08:00 / 18:00">
-      </div>
-
-      <div class="field full">
-        <label for="patientAddress">Adresse complète *</label>
-        <input id="patientAddress" placeholder="Ex : 12 rue Victor Hugo, 59125 Trith-Saint-Léger">
-      </div>
-
-      <div class="field full">
-        <label for="patientNote">Notes</label>
-        <textarea id="patientNote" placeholder="Ex : code porte, soin, observation..."></textarea>
-      </div>
-    </div>
-
-    <div class="formButtons">
-      <button class="secondary" onclick="closePatientForm()">Annuler</button>
-      <button class="green" onclick="savePatient()">Enregistrer</button>
-    </div>
+ <div class="formBox">
+  <h2 id="formTitle">Nouveau patient</h2>
+  <div class="formContent">
+   <div class="field"><label>Nom / Prénom *</label><input id="patientName"></div>
+   <div class="field"><label>Horaires</label><input id="patientTime"></div>
+   <div class="field full"><label>Adresse complète *</label><input id="patientAddress"></div>
+   <div class="field full"><label>Notes</label><textarea id="patientNote"></textarea></div>
   </div>
+  <div class="formButtons">
+   <button class="secondary" onclick="closePatientForm()">Annuler</button>
+   <button class="green" onclick="savePatient()">Enregistrer</button>
+  </div>
+ </div>
 </div>
 
 <script>
-const STORAGE_KEY = "tournee_infirmiere_patients_v4_segments";
-const SELECTED_KEY = "tournee_infirmiere_selection_v4_segments";
 const GOOGLE_MAX_STOPS_PER_SEGMENT = 9;
-
-const defaultPatients = [
- {name:'CACHOIR Justine', address:'294 rue Lagrange, 59174 La Sentinelle', time:'07:10', note:''},
- {name:'MERCIER Gisèle', address:'38 rue Eugène Brasseur, 59125 Trith-Saint-Léger', time:'07:30', note:''},
- {name:'CARPENTIER Gérard', address:"34 rue de l'Humanité, 59125 Trith-Saint-Léger", time:'08:00 / 12:00 / 18:00', note:''},
- {name:'CARPENTIER Michèle', address:"34 rue de l'Humanité, 59125 Trith-Saint-Léger", time:'08:00 / 18:00', note:''},
- {name:'CHEMINAIS Yvon', address:'30 rue Eugène Brasseur, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'CHIARELLI Renée', address:'160 rue de l’Égalité, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'CRISPATZU Mario', address:'35 rue Gaston Griolet, 59125 Trith-Saint-Léger', time:'08:00 / 12:00 / 18:00', note:''},
- {name:'DELECLUSE Martine', address:'29 rue Émile Zola, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'DI BRITA Maria', address:'180 rue Gustave Delory, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'DRAUX Louis', address:'102 rue Voltaire, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'IDE Bernadette', address:'59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:'Adresse précise non lisible sur le document'},
- {name:'LECLERCQ Pierre', address:'16 rue du Lieutenant Arnold, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'LENNE Nicole', address:'16 rue Gustave Delory, 59125 Trith-Saint-Léger', time:'08:00 / 12:00 / 18:00', note:''},
- {name:'LEGLEUX Daniel', address:'52 rue Daniel Casanova, 59125 Trith-Saint-Léger', time:'08:00', note:''},
- {name:'PANIEZ Roland', address:'12 Résidence Florent Gilles, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'PARENT Josiane', address:'19 rue du Nouveau Monde, 59121 Haulchin', time:'08:00', note:''},
- {name:'PECQUEUR Gilbert', address:'6 Clos Aragon, 59125 Trith-Saint-Léger', time:'08:00 / 18:00', note:''},
- {name:'WAGRET Ghislaine', address:'49 rue Gustave Delory, 59125 Trith-Saint-Léger', time:'08:00', note:''},
- {name:'CHARLET Marie-France', address:'15 résidence Florent Gilles, 59125 Trith-Saint-Léger', time:'09:00', note:''},
- {name:'NOR Mohammed', address:'22 rue Paul Langevin, 59233 Maing', time:'10:00', note:''},
- {name:'PETIT Marie-Claire', address:'46 rue Danton, 59125 Trith-Saint-Léger', time:'10:00 / 18:00', note:''},
- {name:'CLAISSE Jean-Émile', address:'31 résidence Paul Cézanne, 59125 Trith-Saint-Léger', time:'11:00', note:''},
- {name:'DUBOIS Jean-Pierre', address:'7 résidence Léo Ferré, 59125 Trith-Saint-Léger', time:'18:00', note:''},
- {name:'DUFIEF Janick', address:'57A rue Victor Hugo, 59125 Trith-Saint-Léger', time:'18:00', note:''},
- {name:'DUMEZ Bernard', address:'2 rue de la Concorde, 59125 Trith-Saint-Léger', time:'18:00', note:''},
- {name:'MARTELOSSI Fiona', address:'36 rue Daniel Casanova, 59125 Trith-Saint-Léger', time:'18:00', note:''},
- {name:'SALENGROS Élie', address:"24 rue de l'Humanité, 59125 Trith-Saint-Léger", time:'18:00', note:''}
-];
-
-let patients = loadPatients();
-let selected = loadSelection();
+const TOURS = {
+ trith: {label:'Trith', defaultPatients:[{"name": "CACHOIR Justine", "address": "294 rue Lagrange, 59174 La Sentinelle", "time": "07:10", "note": ""}, {"name": "MERCIER Gisèle", "address": "38 rue Eugène Brasseur, 59125 Trith-Saint-Léger", "time": "07:30", "note": ""}, {"name": "CARPENTIER Gérard", "address": "34 rue de l'Humanité, 59125 Trith-Saint-Léger", "time": "08:00 / 12:00 / 18:00", "note": ""}, {"name": "CARPENTIER Michèle", "address": "34 rue de l'Humanité, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "CHEMINAIS Yvon", "address": "30 rue Eugène Brasseur, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "CHIARELLI Renée", "address": "160 rue de l'Égalité, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "CRISPATZU Mario", "address": "35 rue Gaston Griolet, 59125 Trith-Saint-Léger", "time": "08:00 / 12:00 / 18:00", "note": ""}, {"name": "DELECLUSE Martine", "address": "29 rue Émile Zola, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "DI BRITA Maria", "address": "180 rue Gustave Delory, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "DRAUX Louis", "address": "102 rue Voltaire, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "IDE Bernadette", "address": "59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": "Adresse précise non lisible"}, {"name": "LECLERCQ Pierre", "address": "16 rue du Lieutenant Arnold, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "LENNE Nicole", "address": "16 rue Gustave Delory, 59125 Trith-Saint-Léger", "time": "08:00 / 12:00 / 18:00", "note": ""}, {"name": "LEGLEUX Daniel", "address": "52 rue Daniel Casanova, 59125 Trith-Saint-Léger", "time": "08:00", "note": ""}, {"name": "PANIEZ Roland", "address": "12 Résidence Florent Gilles, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "PARENT Josiane", "address": "19 rue du Nouveau Monde, 59121 Haulchin", "time": "08:00", "note": ""}, {"name": "PECQUEUR Gilbert", "address": "6 Clos Aragon, 59125 Trith-Saint-Léger", "time": "08:00 / 18:00", "note": ""}, {"name": "WAGRET Ghislaine", "address": "49 rue Gustave Delory, 59125 Trith-Saint-Léger", "time": "08:00", "note": ""}, {"name": "CHARLET Marie-France", "address": "15 résidence Florent Gilles, 59125 Trith-Saint-Léger", "time": "09:00", "note": ""}, {"name": "NOR Mohammed", "address": "22 rue Paul Langevin, 59233 Maing", "time": "10:00", "note": ""}, {"name": "PETIT Marie-Claire", "address": "46 rue Danton, 59125 Trith-Saint-Léger", "time": "10:00 / 18:00", "note": ""}, {"name": "CLAISSE Jean-Émile", "address": "31 résidence Paul Cézanne, 59125 Trith-Saint-Léger", "time": "11:00", "note": ""}, {"name": "DUBOIS Jean-Pierre", "address": "7 résidence Léo Ferré, 59125 Trith-Saint-Léger", "time": "18:00", "note": ""}, {"name": "DUFIEF Janick", "address": "57A rue Victor Hugo, 59125 Trith-Saint-Léger", "time": "18:00", "note": ""}, {"name": "DUMEZ Bernard", "address": "2 rue de la Concorde, 59125 Trith-Saint-Léger", "time": "18:00", "note": ""}, {"name": "MARTELOSSI Fiona", "address": "36 rue Daniel Casanova, 59125 Trith-Saint-Léger", "time": "18:00", "note": ""}, {"name": "SALENGROS Élie", "address": "24 rue de l'Humanité, 59125 Trith-Saint-Léger", "time": "18:00", "note": ""}]},
+ valenciennes: {label:'Valenciennes', defaultPatients:[{"name": "Mazzella Nadia", "address": "Résidence Domitys, 2 chemin de Halage, 59300 Valenciennes, Appartement 111", "time": "", "note": "Adresse extraite du document manuscrit"}, {"name": "Goutier Yves", "address": "232 boulevard Harpignies, 59300 Valenciennes, Appartement 40", "time": "", "note": "1er étage"}, {"name": "Duriez René", "address": "Résidence La Chênaie, 27 rue Henry Derycke, 59300 Valenciennes, Appartement 33", "time": "", "note": "Adresse à vérifier"}, {"name": "Cularcq Jean-Claude", "address": "Résidence Arts Déco, 2 bis rue Saint-Roch, 59300 Valenciennes", "time": "", "note": "Adresse à vérifier"}, {"name": "Evrard Lucienne", "address": "74 rue des Glacis, 59300 Valenciennes", "time": "", "note": ""}, {"name": "Herbert Chantal", "address": "Happy Senior, Valenciennes, Chambre 38", "time": "", "note": "Adresse complète à compléter"}, {"name": "Ullmo Brice", "address": "26 boulevard Watteau, Entrée E, 2e étage, 59300 Valenciennes", "time": "", "note": "Toujours appeler avant de garer dans la cour"}, {"name": "Aper Alain", "address": "12 rue Pilette, 59300 Valenciennes, 1er étage", "time": "", "note": ""}, {"name": "Mazin Josette", "address": "Rue de l'Épinoy, Résidence Saint-Saulve Michel", "time": "", "note": "4e étage, adresse à vérifier"}, {"name": "Delotte Catherine", "address": "83 boulevard Saly, 59300 Valenciennes", "time": "", "note": ""}, {"name": "Caloi Jean-Pierre", "address": "31 rue Garon, 59410 Anzin", "time": "", "note": "Briques + sonde urinaire"}, {"name": "Pauvel Françoise", "address": "Résidence Main de la Paille, rue Bauduin l'Édifieur", "time": "", "note": "Adresse à vérifier"}, {"name": "Misset Christian", "address": "Fondation Ducrocq, 59300 Valenciennes", "time": "", "note": "1er étage, chambre tout au fond à gauche"}, {"name": "Zaag Simone", "address": "1 boulevard Watteau, Résidence Le Cèdre, Entrée C, 59300 Valenciennes", "time": "", "note": ""}, {"name": "Anzen", "address": "20 rue Saint-Antoine", "time": "", "note": "Nom/adresse à vérifier"}, {"name": "Bultot René", "address": "", "time": "", "note": "Adresse non lisible/non indiquée"}, {"name": "Pannart Yves", "address": "1 rue Bauduin l'Édifieur", "time": "", "note": "Adresse à vérifier"}, {"name": "Mathieu Pierre", "address": "5 impasse Mahieu de Fontenelle, 59880 Saint-Saulve", "time": "", "note": "Adresse à vérifier"}, {"name": "Félix Renée", "address": "Happy Senior, 59300 Valenciennes", "time": "", "note": "Chambre du fond à gauche"}, {"name": "Duriez Danièle", "address": "16 bis boulevard Watteau, 59300 Valenciennes", "time": "", "note": "3e étage"}, {"name": "Carlot", "address": "12 rue Pilette, 59300 Valenciennes, 4e étage", "time": "", "note": "Aper derrière les escaliers"}, {"name": "Belle Paule Françoise", "address": "5 rue de Bourgogne, 59300 Valenciennes", "time": "", "note": "14h/12h"}, {"name": "Bodechon", "address": "", "time": "", "note": "Adresse non indiquée, stressée s'en occuper"}]}
+};
+let currentTour = localStorage.getItem('tournee_current_tour') || 'trith';
+let patients = [];
+let selected = [];
 let editingIndex = null;
 
-function cloneData(data){ return JSON.parse(JSON.stringify(data)); }
+function storagePatientsKey(){return 'tournee_patients_' + currentTour + '_v1'}
+function storageSelectedKey(){return 'tournee_selected_' + currentTour + '_v1'}
+function cloneData(x){return JSON.parse(JSON.stringify(x))}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}
+function enc(s){return encodeURIComponent(s)}
+function escapeHtml(str){return String(str||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}
 
-function loadPatients(){
- try{
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw){
-   const data = JSON.parse(raw);
-   if(Array.isArray(data)) return data;
-  }
- }catch(e){}
- return cloneData(defaultPatients);
-}
-
-function loadSelection(){
- try{
-  const raw = localStorage.getItem(SELECTED_KEY);
-  if(raw){
-   const data = JSON.parse(raw);
-   if(Array.isArray(data)) return data.filter(i => Number.isInteger(i));
-  }
- }catch(e){}
- return [];
+function loadTourData(){
+ try{patients = JSON.parse(localStorage.getItem(storagePatientsKey())) || cloneData(TOURS[currentTour].defaultPatients)}catch(e){patients = cloneData(TOURS[currentTour].defaultPatients)}
+ try{selected = JSON.parse(localStorage.getItem(storageSelectedKey())) || []}catch(e){selected=[]}
+ selected = selected.filter(i=>Number.isInteger(i)&&i>=0&&i<patients.length);
 }
 
 function saveAll(){
- selected = selected.filter(i => i >= 0 && i < patients.length);
- localStorage.setItem(STORAGE_KEY, JSON.stringify(patients));
- localStorage.setItem(SELECTED_KEY, JSON.stringify(selected));
+ selected = selected.filter(i=>i>=0&&i<patients.length);
+ localStorage.setItem(storagePatientsKey(), JSON.stringify(patients));
+ localStorage.setItem(storageSelectedKey(), JSON.stringify(selected));
+ localStorage.setItem('tournee_current_tour', currentTour);
 }
 
-function norm(s){ return String(s || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+function switchTour(tour){
+ saveAll();
+ currentTour = tour;
+ loadTourData();
+ document.querySelectorAll('.tourTabs button').forEach(b=>b.classList.remove('active'));
+ document.getElementById('tourTab-' + tour).classList.add('active');
+ document.getElementById('patientsTitle').textContent = '1. Patients - ' + TOURS[tour].label;
+ document.getElementById('routeTitle').textContent = '2. Ordre de tournée - ' + TOURS[tour].label;
+ document.getElementById('search').value = '';
+ document.getElementById('segments').style.display='none';
+ renderPatients(); renderRoute(); renderSegments(false);
+}
 
 function renderPatients(){
- const q = norm(document.getElementById('search').value || '');
- const box = document.getElementById('patients');
- box.innerHTML = '';
-
- const filtered = patients
-  .map((p, index) => ({p, index}))
-  .filter(x => norm(x.p.name + ' ' + x.p.address + ' ' + (x.p.time || '') + ' ' + (x.p.note || '')).includes(q));
-
- if(filtered.length === 0){
-  box.innerHTML = '<div class="empty">Aucun patient trouvé.</div>';
-  return;
- }
-
- filtered.forEach(({p, index}) => {
-  const isSel = selected.includes(index);
-  const div = document.createElement('div');
-  div.className = 'card ' + (isSel ? 'selected' : '');
-
-  div.innerHTML = `
-    <input type="checkbox" ${isSel ? 'checked' : ''} onchange="togglePatient(${index})">
-    <div>
-      <div class="name">${escapeHtml(p.name)}</div>
-      <div class="addr">${escapeHtml(p.address)}</div>
-      <div class="meta">Horaire : ${escapeHtml(p.time || 'Non précisé')}${p.note ? ' — ' + escapeHtml(p.note) : ''}</div>
-    </div>
-    <div class="cardActions">
-      <button onclick="editPatient(${index})">Modifier</button>
-      <button class="danger" onclick="deletePatient(${index})">Supprimer</button>
-    </div>
-  `;
-
+ const q=norm(document.getElementById('search').value||'');
+ const box=document.getElementById('patients'); box.innerHTML='';
+ const filtered=patients.map((p,index)=>({p,index})).filter(x=>norm(x.p.name+' '+x.p.address+' '+(x.p.note||'')).includes(q));
+ if(!filtered.length){box.innerHTML='<div class="empty">Aucun patient trouvé.</div>';return}
+ filtered.forEach(({p,index})=>{
+  const isSel=selected.includes(index);
+  const div=document.createElement('div'); div.className='card '+(isSel?'selected':'');
+  div.innerHTML=`
+   <input type="checkbox" ${isSel?'checked':''} onchange="togglePatient(${index})">
+   <div>
+    <div class="name">${escapeHtml(p.name)}</div>
+    <div class="addr">${escapeHtml(p.address || 'Adresse à compléter')}</div>
+    <div class="meta">${escapeHtml(p.time||'')}${p.note?' — '+escapeHtml(p.note):''}</div>
+   </div>
+   <div class="cardActions">
+    <button onclick="editPatient(${index})">Modifier</button>
+    <button class="danger" onclick="deletePatient(${index})">Supprimer</button>
+   </div>`;
   box.appendChild(div);
  });
-}
-
-function togglePatient(i){
- const pos = selected.indexOf(i);
- if(pos >= 0) selected.splice(pos, 1);
- else selected.push(i);
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
-}
-
-function selectVisible(){
- const q = norm(document.getElementById('search').value || '');
- patients.forEach((p, i) => {
-  if(norm(p.name + ' ' + p.address + ' ' + (p.time || '') + ' ' + (p.note || '')).includes(q) && !selected.includes(i)){
-   selected.push(i);
-  }
- });
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
-}
-
-function clearSelection(){
- selected = [];
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
 }
 
 function renderRoute(){
- const box = document.getElementById('route');
- box.innerHTML = '';
- selected = selected.filter(i => i >= 0 && i < patients.length);
- saveAll();
-
- if(!selected.length){
-  box.innerHTML = '<div class="empty">Aucun patient sélectionné.</div>';
-  document.getElementById('routeText').value = '';
-  return;
- }
-
- selected.forEach((idx, pos) => {
-  const p = patients[idx];
-  const div = document.createElement('div');
-  div.className = 'routeItem';
-
-  div.innerHTML = `
-    <div class="rank">${pos + 1}</div>
-    <div>
-      <div class="name">${escapeHtml(p.name)}</div>
-      <div class="addr">${escapeHtml(p.address)}</div>
-      <div class="small">${escapeHtml(p.time || '')}${p.note ? ' — ' + escapeHtml(p.note) : ''}</div>
-    </div>
-    <div class="routeActions">
-      <button class="houseBtn" onclick="viewHouse(${idx})">🏠 Maison</button>
-      <button class="goBtn" onclick="goToPatient(${idx})">🚗 Aller à</button>
-      <button class="mapBtn" onclick="openPatientMap(${idx})">📍 Maps</button>
-      <button onclick="move(${pos},-1)">↑</button>
-      <button onclick="move(${pos},1)">↓</button>
-      <button class="danger" onclick="removeAt(${pos})">✕</button>
-    </div>
-  `;
-
+ const box=document.getElementById('route'); box.innerHTML='';
+ selected=selected.filter(i=>i>=0&&i<patients.length); saveAll();
+ if(!selected.length){box.innerHTML='<div class="empty">Aucun patient sélectionné.</div>';document.getElementById('routeText').value='';return}
+ selected.forEach((idx,pos)=>{
+  const p=patients[idx];
+  const div=document.createElement('div'); div.className='routeItem';
+  div.innerHTML=`
+   <div class="rank">${pos+1}</div>
+   <div>
+    <div class="name">${escapeHtml(p.name)}</div>
+    <div class="addr">${escapeHtml(p.address || 'Adresse à compléter')}</div>
+    <div class="meta">${escapeHtml(p.time||'')}${p.note?' — '+escapeHtml(p.note):''}</div>
+   </div>
+   <div class="routeActions">
+    <button class="houseBtn" onclick="viewHouse(${idx})">🏠 Maison</button>
+    <button class="goBtn" onclick="goToPatient(${idx})">🚗 Aller à</button>
+    <button class="mapBtn" onclick="openPatientMap(${idx})">📍 Maps</button>
+    <button onclick="move(${pos},-1)">↑</button>
+    <button onclick="move(${pos},1)">↓</button>
+    <button class="danger" onclick="removeAt(${pos})">✕</button>
+   </div>`;
   box.appendChild(div);
  });
-
- document.getElementById('routeText').value = buildText();
+ document.getElementById('routeText').value=buildText();
 }
 
-function move(pos, dir){
- const n = pos + dir;
- if(n < 0 || n >= selected.length) return;
- [selected[pos], selected[n]] = [selected[n], selected[pos]];
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
-}
-
-function removeAt(pos){
- selected.splice(pos, 1);
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
-}
-
-function resetRoute(){
- selected = [];
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
-}
-
-function buildText(){
- return selected.map((idx, i) => {
-  const p = patients[idx];
-  return `${i + 1}. ${p.name} — ${p.address}${p.time ? ' — ' + p.time : ''}${p.note ? ' — ' + p.note : ''}`;
- }).join('\n');
-}
-
-async function copyRoute(){
- const t = buildText();
- document.getElementById('routeText').value = t;
- try{
-  await navigator.clipboard.writeText(t);
-  alert('Tournée copiée.');
- }catch(e){
-  alert('Copie impossible automatiquement, sélectionne le texte en bas.');
- }
-}
-
-function openPatientForm(index = null){
- editingIndex = index;
- document.getElementById('formTitle').textContent = index === null ? 'Nouveau patient' : 'Modifier patient';
- const p = index === null ? {name:'', address:'', time:'', note:''} : patients[index];
-
- document.getElementById('patientName').value = p.name || '';
- document.getElementById('patientAddress').value = p.address || '';
- document.getElementById('patientTime').value = p.time || '';
- document.getElementById('patientNote').value = p.note || '';
-
- document.getElementById('patientFormOverlay').style.display = 'flex';
- setTimeout(() => document.getElementById('patientName').focus(), 50);
-}
-
-function editPatient(index){ openPatientForm(index); }
-
-function closePatientForm(){
- editingIndex = null;
- document.getElementById('patientFormOverlay').style.display = 'none';
-}
-
-function savePatient(){
- const name = document.getElementById('patientName').value.trim();
- const address = document.getElementById('patientAddress').value.trim();
- const time = document.getElementById('patientTime').value.trim();
- const note = document.getElementById('patientNote').value.trim();
-
- if(!name){ alert('Le nom est obligatoire.'); return; }
- if(!address){ alert('L’adresse est obligatoire.'); return; }
-
- const patient = {name, address, time, note};
- if(editingIndex === null) patients.push(patient);
- else patients[editingIndex] = patient;
-
- saveAll();
- closePatientForm();
- renderPatients();
- renderRoute();
- renderSegments(false);
-}
-
-function deletePatient(index){
- const p = patients[index];
- if(!confirm(`Supprimer ${p.name} ?`)) return;
-
- patients.splice(index, 1);
- selected = selected.filter(i => i !== index).map(i => i > index ? i - 1 : i);
-
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
-}
-
-function toggleImport(){
- const box = document.getElementById('importBox');
- box.style.display = box.style.display === 'block' ? 'none' : 'block';
-}
-
-function importPatients(){
- const text = document.getElementById('importText').value.trim();
- if(!text){ alert('Colle au moins une ligne à importer.'); return; }
-
- const lines = text.split(/\r?\n/).map(x => x.trim()).filter(Boolean);
- let count = 0;
-
- lines.forEach(line => {
-  const parts = line.split(';').map(x => x.trim());
-  if(parts.length >= 2 && parts[0] && parts[1]){
-   patients.push({name: parts[0], address: parts[1], time: parts[2] || '', note: parts[3] || ''});
-   count++;
-  }
- });
-
- saveAll();
- document.getElementById('importText').value = '';
- renderPatients();
- renderRoute();
- renderSegments(false);
- alert(count + ' patient(s) importé(s).');
-}
-
-function toggleBackup(){
- const box = document.getElementById('backupBox');
- box.style.display = box.style.display === 'block' ? 'none' : 'block';
-}
-
-function getFullBackupData(){
- return {version: 1, type: 'complete', exportedAt: new Date().toISOString(), patients: patients, selected: selected};
-}
-
-function getRouteBackupData(){
- const route = selected.map(i => {
-  const p = patients[i];
-  return {name: p.name, address: p.address};
- });
- return {version: 1, type: 'route', exportedAt: new Date().toISOString(), route: route};
-}
-
-function exportBackup(){
- const data = getFullBackupData();
- setBackupText(data);
- downloadJson(data, 'sauvegarde-tournee-complete-' + today() + '.json');
-}
-
-function importBackup(event){
- const file = event.target.files && event.target.files[0];
- if(!file){
-  setRestoreStatus('Aucun fichier choisi.', true);
-  return;
- }
-
- setRestoreStatus('Lecture du fichier : ' + file.name, false);
-
- readJsonFile(file, data => {
-  if(!data || !Array.isArray(data.patients)){
-   setRestoreStatus('Fichier invalide : ce n’est pas une sauvegarde complète.', true);
-   alert('Fichier de sauvegarde invalide.');
-   return;
-  }
-  restoreJsonData(data);
-  setRestoreStatus('Sauvegarde restaurée depuis : ' + file.name, false);
- });
-
- event.target.value = '';
-}
-
-function exportRouteOnly(){
- const data = getRouteBackupData();
- setBackupText(data);
- downloadJson(data, 'ordre-tournee-' + today() + '.json');
-}
-
-function importRouteOnly(event){
- const file = event.target.files && event.target.files[0];
- if(!file){
-  setRestoreStatus('Aucun fichier choisi.', true);
-  return;
- }
-
- setRestoreStatus('Lecture du fichier : ' + file.name, false);
-
- readJsonFile(file, data => {
-  if(!data || !Array.isArray(data.route)){
-   setRestoreStatus('Fichier invalide : ce n’est pas une sauvegarde d’ordre.', true);
-   alert('Fichier d’ordre invalide.');
-   return;
-  }
-  restoreJsonData(data);
-  setRestoreStatus('Ordre restauré depuis : ' + file.name, false);
- });
-
- event.target.value = '';
-}
-
-function resetAllData(){
- if(!confirm('Tout réinitialiser ? Patients + tournée seront remis comme au départ.')) return;
- patients = cloneData(defaultPatients);
- selected = [];
- saveAll();
- renderPatients();
- renderRoute();
- renderSegments(false);
- alert('Données réinitialisées.');
-}
-
-function getSelectedAddresses(){
- return selected
-  .map(i => patients[i])
-  .filter(p => p && p.address)
-  .map(p => ({name: p.name, address: p.address}));
-}
-
-function buildGoogleMapsUrl(stops, includeOrigin){
- if(!stops || stops.length === 0) return '';
-
- let url = 'https://www.google.com/maps/dir/?api=1&travelmode=driving';
-
- if(includeOrigin){
-  url += '&origin=Maing, France';
- }
-
- if(stops.length === 1){
-  url += '&destination=' + enc(stops[0].address);
-  return url;
- }
-
- url += '&destination=' + enc(stops[stops.length - 1].address);
- const waypoints = stops.slice(0, -1).map(s => s.address).join('|');
- if(waypoints) url += '&waypoints=' + enc(waypoints);
- return url;
-}
-
-function makeSegments(stops){
- const segments = [];
- for(let i = 0; i < stops.length; i += GOOGLE_MAX_STOPS_PER_SEGMENT){
-  segments.push(stops.slice(i, i + GOOGLE_MAX_STOPS_PER_SEGMENT));
- }
- return segments;
-}
-
-function renderSegments(showIfEmptyAlert){
- const box = document.getElementById('segments');
- const stops = getSelectedAddresses();
-
- if(stops.length === 0){
-  box.style.display = 'none';
-  box.innerHTML = '';
-  if(showIfEmptyAlert) alert('Sélectionne au moins une adresse.');
-  return;
- }
-
- const segments = makeSegments(stops);
- box.style.display = 'block';
-
- let html = `<div class="segmentTitle">Itinéraires Google Maps fractionnés</div>`;
- html += `<div class="segmentButtons">`;
-
- segments.forEach((seg, idx) => {
-  const startNumber = idx * GOOGLE_MAX_STOPS_PER_SEGMENT + 1;
-  const endNumber = startNumber + seg.length - 1;
-  html += `<button onclick="openGoogleSegment(${idx})">Segment ${idx + 1} : ${startNumber} à ${endNumber}</button>`;
- });
-
- html += `</div>`;
- html += `<div class="segmentInfo">`;
- html += `${stops.length} arrêt(s) au total — découpage en ${segments.length} segment(s) de ${GOOGLE_MAX_STOPS_PER_SEGMENT} arrêts maximum. `;
- html += `Quand tu termines un segment dans Google Maps, reviens ici et ouvre le segment suivant.`;
- html += `</div>`;
-
- box.innerHTML = html;
-}
-
-function openGoogleSegment(segmentIndex){
- const stops = getSelectedAddresses();
- const segments = makeSegments(stops);
- const segment = segments[segmentIndex];
-
- if(!segment || segment.length === 0){
-  alert('Segment introuvable.');
-  return;
- }
-
- const includeOrigin = segmentIndex === 0;
- const url = buildGoogleMapsUrl(segment, includeOrigin);
- window.open(url, '_blank');
-}
-
-function openGoogleMapsFullOrFirst(){
- const stops = getSelectedAddresses();
-
- if(stops.length === 0){
-  alert('Sélectionne au moins une adresse.');
-  return;
- }
-
- if(stops.length > GOOGLE_MAX_STOPS_PER_SEGMENT){
-  renderSegments(true);
-  alert('Il y a plus de 9 arrêts. J’ai créé les segments Google Maps en dessous.');
-  return;
- }
-
- window.open(buildGoogleMapsUrl(stops, true), '_blank');
-}
-
-
-function openPatientMap(index){
- const p = patients[index];
- if(!p || !p.address) return;
- window.open('https://www.google.com/maps/search/?api=1&query=' + enc(p.address), '_blank');
-}
-
-function goToPatient(index){
- const p = patients[index];
- if(!p || !p.address) return;
- window.open('https://waze.com/ul?q=' + enc(p.address) + '&navigate=yes', '_blank');
-}
-
-function viewHouse(index){
- const p = patients[index];
- if(!p || !p.address) return;
- window.open('https://www.google.com/maps/search/?api=1&query=' + enc(p.address), '_blank');
-}
-
-function openWazeNext(){
- if(selected.length === 0){ alert('Sélectionne au moins une adresse.'); return; }
- const p = patients[selected[0]];
- window.open('https://waze.com/ul?q=' + enc(p.address) + '&navigate=yes', '_blank');
-}
-
-function setRestoreStatus(message, isError){
- const el = document.getElementById('restoreStatus');
- if(el){
-  el.style.color = isError ? '#c62828' : '#188038';
-  el.textContent = message || '';
- }
-}
-
-function setBackupText(data){
- const area = document.getElementById('backupText');
- if(area) area.value = JSON.stringify(data, null, 2);
-}
-
-async function copyFullBackup(){
- const data = getFullBackupData();
- const text = JSON.stringify(data, null, 2);
- setBackupText(data);
- try{
-  await navigator.clipboard.writeText(text);
-  setRestoreStatus('Sauvegarde copiée. Tu peux la coller dans Notes ou Mail.', false);
-  alert('Sauvegarde copiée.');
- }catch(e){
-  setRestoreStatus('Copie automatique impossible. Le JSON est affiché dans la zone de secours.', true);
-  alert('Copie impossible automatiquement. Le JSON est affiché dans la zone de secours.');
- }
-}
-
-function restoreBackupFromText(){
- const area = document.getElementById('backupText');
- const text = area ? area.value.trim() : '';
- if(!text){
-  alert('Colle d’abord une sauvegarde JSON.');
-  return;
- }
-
- try{
-  const data = JSON.parse(text);
-  restoreJsonData(data);
- }catch(e){
-  setRestoreStatus('JSON invalide.', true);
-  alert('JSON invalide.');
- }
-}
-
-function downloadJson(data, filename){
- setBackupText(data);
- const text = JSON.stringify(data, null, 2);
-
- const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
- if(isIOS && navigator.share){
-  try{
-   const file = new File([text], filename, {type:'application/json'});
-   if(navigator.canShare && navigator.canShare({files:[file]})){
-    navigator.share({files:[file], title:filename, text:'Sauvegarde tournée infirmière'});
-    return;
-   }
-  }catch(e){}
- }
-
- const blob = new Blob([text], {type:'application/json'});
- const url = URL.createObjectURL(blob);
- const a = document.createElement('a');
- a.href = url;
- a.download = filename;
- document.body.appendChild(a);
- a.click();
- a.remove();
- setTimeout(() => URL.revokeObjectURL(url), 1000);
-
- setRestoreStatus('Sauvegarde générée. Si aucun téléchargement ne s’ouvre sur iPhone, utilise Copier sauvegarde.', false);
-}
-
-function restoreJsonData(data){
- if(data && Array.isArray(data.patients)){
-  if(!confirm('Restaurer cette sauvegarde complète ? Les données actuelles seront remplacées.')) return;
-
-  patients = data.patients.map(p => ({
-   name: String(p.name || '').trim(),
-   address: String(p.address || '').trim(),
-   time: String(p.time || '').trim(),
-   note: String(p.note || '').trim()
-  })).filter(p => p.name && p.address);
-
-  selected = Array.isArray(data.selected) ? data.selected.filter(i => Number.isInteger(i) && i >= 0 && i < patients.length) : [];
-
-  saveAll();
-  renderPatients();
-  renderRoute();
-  renderSegments(false);
-  setRestoreStatus('Sauvegarde complète restaurée.', false);
-  alert('Sauvegarde restaurée.');
-  return;
- }
-
- if(data && Array.isArray(data.route)){
-  const newSelected = [];
-  data.route.forEach(item => {
-   const name = norm(item.name || '');
-   const address = norm(item.address || '');
-   const index = patients.findIndex(p => norm(p.name) === name && norm(p.address) === address);
-   if(index >= 0 && !newSelected.includes(index)) newSelected.push(index);
-  });
-
-  selected = newSelected;
-  saveAll();
-  renderPatients();
-  renderRoute();
-  renderSegments(false);
-  setRestoreStatus(newSelected.length + ' patient(s) restauré(s) dans l’ordre.', false);
-  alert(newSelected.length + ' patient(s) restauré(s) dans l’ordre.');
-  return;
- }
-
- setRestoreStatus('Fichier JSON non reconnu.', true);
- alert('Fichier JSON non reconnu.');
-}
-
-function readJsonFile(file, callback){
- const reader = new FileReader();
- reader.onload = function(e){
-  try{
-   callback(JSON.parse(e.target.result));
-  }catch(err){
-   alert('Impossible de lire ce fichier JSON.');
-  }
- };
- reader.readAsText(file, 'UTF-8');
-}
-
-function today(){ return new Date().toISOString().slice(0,10); }
-function enc(s){ return encodeURIComponent(s); }
-
-function escapeHtml(str){
- return String(str || '')
-  .replaceAll('&','&amp;')
-  .replaceAll('<','&lt;')
-  .replaceAll('>','&gt;')
-  .replaceAll('"','&quot;')
-  .replaceAll("'","&#039;");
-}
-
-document.getElementById('patientFormOverlay').addEventListener('click', function(e){
- if(e.target === this) closePatientForm();
-});
-
-document.addEventListener('keydown', function(e){
- if(e.key === 'Escape') closePatientForm();
-});
-
-
-function toggleMorePatients(){
- document.getElementById('morePatients').classList.toggle('open');
-}
-function toggleMoreRoute(){
- document.getElementById('moreRoute').classList.toggle('open');
-}
-function showMobileTab(which){
- document.body.classList.remove('mobile-patients','mobile-route');
- document.getElementById('tabPatients').classList.remove('active');
- document.getElementById('tabRoute').classList.remove('active');
- if(which === 'route'){
-  document.body.classList.add('mobile-route');
-  document.getElementById('tabRoute').classList.add('active');
- }else{
-  document.body.classList.add('mobile-patients');
-  document.getElementById('tabPatients').classList.add('active');
- }
-}
-function initMobileView(){
- if(window.innerWidth <= 900) showMobileTab('patients');
-}
-
+function togglePatient(i){const p=selected.indexOf(i); if(p>=0)selected.splice(p,1); else selected.push(i); saveAll(); renderPatients(); renderRoute(); renderSegments(false)}
+function selectVisible(){const q=norm(document.getElementById('search').value||''); patients.forEach((p,i)=>{if(norm(p.name+' '+p.address+' '+(p.note||'')).includes(q)&&!selected.includes(i))selected.push(i)}); saveAll(); renderPatients(); renderRoute(); renderSegments(false)}
+function clearSelection(){selected=[]; saveAll(); renderPatients(); renderRoute(); renderSegments(false)}
+function move(pos,dir){const n=pos+dir;if(n<0||n>=selected.length)return;[selected[pos],selected[n]]=[selected[n],selected[pos]];saveAll();renderRoute();renderSegments(false)}
+function removeAt(pos){selected.splice(pos,1);saveAll();renderPatients();renderRoute();renderSegments(false)}
+function resetRoute(){selected=[];saveAll();renderPatients();renderRoute();renderSegments(false)}
+function buildText(){return selected.map((idx,i)=>`${i+1}. ${patients[idx].name} — ${patients[idx].address}`).join('\n')}
+async function copyRoute(){const t=buildText();document.getElementById('routeText').value=t;try{await navigator.clipboard.writeText(t);alert('Tournée copiée.')}catch(e){alert('Copie impossible.')}}
+
+function openPatientForm(index=null){editingIndex=index;const p=index===null?{name:'',address:'',time:'',note:''}:patients[index];document.getElementById('formTitle').textContent=index===null?'Nouveau patient':'Modifier patient';document.getElementById('patientName').value=p.name||'';document.getElementById('patientAddress').value=p.address||'';document.getElementById('patientTime').value=p.time||'';document.getElementById('patientNote').value=p.note||'';document.getElementById('patientFormOverlay').style.display='flex'}
+function editPatient(index){openPatientForm(index)}
+function closePatientForm(){editingIndex=null;document.getElementById('patientFormOverlay').style.display='none'}
+function savePatient(){const name=document.getElementById('patientName').value.trim();const address=document.getElementById('patientAddress').value.trim();const time=document.getElementById('patientTime').value.trim();const note=document.getElementById('patientNote').value.trim();if(!name){alert('Le nom est obligatoire.');return} if(!address){alert('L’adresse est obligatoire.');return} const p={name,address,time,note}; if(editingIndex===null)patients.push(p);else patients[editingIndex]=p;saveAll();closePatientForm();renderPatients();renderRoute();renderSegments(false)}
+function deletePatient(index){if(!confirm('Supprimer '+patients[index].name+' ?'))return;patients.splice(index,1);selected=selected.filter(i=>i!==index).map(i=>i>index?i-1:i);saveAll();renderPatients();renderRoute();renderSegments(false)}
+
+function toggleMorePatients(){document.getElementById('morePatients').classList.toggle('open')}
+function toggleMoreRoute(){document.getElementById('moreRoute').classList.toggle('open')}
+function toggleImport(){const b=document.getElementById('importBox');b.style.display=b.style.display==='block'?'none':'block'}
+function toggleBackup(){const b=document.getElementById('backupBox');b.style.display=b.style.display==='block'?'none':'block'}
+
+function importPatients(){const text=document.getElementById('importText').value.trim();if(!text){alert('Colle au moins une ligne.');return}let c=0;text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach(line=>{const p=line.split(';').map(x=>x.trim());if(p[0]&&p[1]){patients.push({name:p[0],address:p[1],time:p[2]||'',note:p[3]||''});c++}});saveAll();document.getElementById('importText').value='';renderPatients();alert(c+' patient(s) importé(s).')}
+
+function getSelectedAddresses(){return selected.map(i=>patients[i]).filter(p=>p&&p.address).map(p=>({name:p.name,address:p.address}))}
+function buildGoogleMapsUrl(stops,includeOrigin){if(!stops.length)return '';let url='https://www.google.com/maps/dir/?api=1&travelmode=driving';if(includeOrigin)url+='&origin=Maing, France';if(stops.length===1)return url+'&destination='+enc(stops[0].address);url+='&destination='+enc(stops[stops.length-1].address);const w=stops.slice(0,-1).map(s=>s.address).join('|');if(w)url+='&waypoints='+enc(w);return url}
+function makeSegments(stops){const a=[];for(let i=0;i<stops.length;i+=GOOGLE_MAX_STOPS_PER_SEGMENT)a.push(stops.slice(i,i+GOOGLE_MAX_STOPS_PER_SEGMENT));return a}
+function renderSegments(alertEmpty){const box=document.getElementById('segments');const stops=getSelectedAddresses();if(!stops.length){box.style.display='none';box.innerHTML='';if(alertEmpty)alert('Sélectionne au moins une adresse.');return}const segs=makeSegments(stops);box.style.display='block';let h='<div class="segmentTitle">Itinéraires Google Maps fractionnés</div><div class="segmentButtons">';segs.forEach((seg,idx)=>{const s=idx*GOOGLE_MAX_STOPS_PER_SEGMENT+1;const e=s+seg.length-1;h+=`<button onclick="openGoogleSegment(${idx})">Segment ${idx+1} : ${s} à ${e}</button>`});h+='</div><div class="meta">'+stops.length+' arrêt(s), '+segs.length+' segment(s).</div>';box.innerHTML=h}
+function openGoogleSegment(i){const seg=makeSegments(getSelectedAddresses())[i];if(seg)window.open(buildGoogleMapsUrl(seg,i===0),'_blank')}
+function openGoogleMapsFullOrFirst(){const stops=getSelectedAddresses();if(!stops.length){alert('Sélectionne au moins une adresse.');return}if(stops.length>GOOGLE_MAX_STOPS_PER_SEGMENT){renderSegments(true);alert('Plus de 9 arrêts : segments créés.');return}window.open(buildGoogleMapsUrl(stops,true),'_blank')}
+function openWazeNext(){if(!selected.length){alert('Sélectionne au moins une adresse.');return}goToPatient(selected[0])}
+function goToPatient(index){const p=patients[index];if(!p||!p.address){alert('Adresse manquante.');return}window.open('https://waze.com/ul?q='+enc(p.address)+'&navigate=yes','_blank')}
+function openPatientMap(index){const p=patients[index];if(!p||!p.address){alert('Adresse manquante.');return}window.open('https://www.google.com/maps/search/?api=1&query='+enc(p.address),'_blank')}
+function viewHouse(index){openPatientMap(index)}
+
+function getBackupData(){return {version:1,tour:currentTour,label:TOURS[currentTour].label,patients,selected,exportedAt:new Date().toISOString()}}
+function getRouteBackupData(){return {version:1,tour:currentTour,type:'route',route:selected.map(i=>({name:patients[i].name,address:patients[i].address})),exportedAt:new Date().toISOString()}}
+function setBackupText(data){document.getElementById('backupText').value=JSON.stringify(data,null,2)}
+function downloadJson(data,name){setBackupText(data);const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportBackup(){downloadJson(getBackupData(),'sauvegarde-'+currentTour+'.json')}
+function exportRouteOnly(){downloadJson(getRouteBackupData(),'ordre-'+currentTour+'.json')}
+async function copyFullBackup(){const t=JSON.stringify(getBackupData(),null,2);setBackupText(getBackupData());try{await navigator.clipboard.writeText(t);alert('Sauvegarde copiée.')}catch(e){alert('Copie impossible, utilise la zone JSON.')}}
+function readJsonFile(file,cb){const r=new FileReader();r.onload=e=>{try{cb(JSON.parse(e.target.result))}catch{alert('JSON invalide')}};r.readAsText(file,'UTF-8')}
+function importBackup(e){const f=e.target.files&&e.target.files[0];if(!f)return;readJsonFile(f,data=>{if(!Array.isArray(data.patients)){alert('Sauvegarde invalide.');return}if(!confirm('Restaurer cette tournée ?'))return;patients=data.patients;selected=Array.isArray(data.selected)?data.selected:[];saveAll();renderPatients();renderRoute();renderSegments(false);alert('Sauvegarde restaurée.')});e.target.value=''}
+function importRouteOnly(e){const f=e.target.files&&e.target.files[0];if(!f)return;readJsonFile(f,data=>{restoreRouteData(data)});e.target.value=''}
+function restoreRouteData(data){if(!Array.isArray(data.route)){alert('Ordre invalide.');return}const ns=[];data.route.forEach(item=>{const i=patients.findIndex(p=>norm(p.name)===norm(item.name)&&norm(p.address)===norm(item.address));if(i>=0&&!ns.includes(i))ns.push(i)});selected=ns;saveAll();renderPatients();renderRoute();renderSegments(false);alert(ns.length+' patient(s) restauré(s) dans l’ordre.')}
+function restoreBackupFromText(){try{const data=JSON.parse(document.getElementById('backupText').value); if(Array.isArray(data.patients)){patients=data.patients;selected=Array.isArray(data.selected)?data.selected:[];saveAll();renderPatients();renderRoute();alert('Sauvegarde restaurée.')} else restoreRouteData(data)}catch(e){alert('JSON invalide.')}}
+function resetCurrentTour(){if(!confirm('Réinitialiser cette tournée ?'))return;patients=cloneData(TOURS[currentTour].defaultPatients);selected=[];saveAll();renderPatients();renderRoute();renderSegments(false)}
+
+function showMobileTab(which){document.body.classList.remove('mobile-patients','mobile-route');document.getElementById('tabPatients').classList.remove('active');document.getElementById('tabRoute').classList.remove('active');if(which==='route'){document.body.classList.add('mobile-route');document.getElementById('tabRoute').classList.add('active')}else{document.body.classList.add('mobile-patients');document.getElementById('tabPatients').classList.add('active')}}
+function initMobileView(){if(window.innerWidth<=900)showMobileTab('patients')}
+document.getElementById('patientFormOverlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closePatientForm()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePatientForm()});
+loadTourData();
+switchTour(currentTour);
 initMobileView();
-renderPatients();
-renderRoute();
-renderSegments(false);
 </script>
 </body>
 </html>
