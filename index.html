@@ -83,12 +83,20 @@ function initSupabase(){const c=getConfig();supabaseUrl.value=c.url;supabaseKey.
 function saveConfig(){localStorage.setItem('supabase_url',supabaseUrl.value.trim());localStorage.setItem('supabase_key',supabaseKey.value.trim());location.reload()}
 function toggleConfig(){configBox.style.display=configBox.style.display==='block'?'none':'block'}
 async function reloadAll(){if(!supabaseClient&&!initSupabase())return;await loadTours();await loadPatients()}
-async function loadTours(){const{data,error}=await supabaseClient.from('tours').select('*').eq('is_active',true).order('name');if(error){alert(error.message);return}tours=data||[];if(!currentTourId&&tours.length)currentTourId=tours[0].id;if(currentTourId&&!tours.some(t=>t.id===currentTourId)&&tours.length)currentTourId=tours[0].id;localStorage.setItem('current_tour_id',currentTourId||'');renderTourTabs()}
+async function loadTours(){const{data,error}=await supabaseClient.from('tours').select('*').eq('is_active',true).order('name');if(error){alert(error.message);return}tours=data||[];if(!currentTourId&&tours.length)currentTourId=tours[0].id;if(currentTourId&&!tours.some(t=>t.id===currentTourId)&&tours.length)currentTourId=tours[0].id;localStorage.setItem('current_tour_id',currentTourId||'');renderTourSelect()}
 async function loadPatients(){if(!currentTourId){patients=[];renderPatients();renderRoute();return}const{data,error}=await supabaseClient.from('patients').select('*').eq('tour_id',currentTourId).eq('is_active',true).order('visit_order').order('created_at');if(error){alert(error.message);return}patients=data||[];const t=tours.find(x=>x.id===currentTourId);patientsTitle.textContent='Patients - '+(t?t.name:'');routeTitle.textContent='Ordre de tournée - '+(t?t.name:'');renderPatients();renderRoute();renderSegments(false)}
 
 function renderTourSelect(){
   const select = document.getElementById('tourSelect');
   select.innerHTML = '';
+
+  if(!tours.length){
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'Aucune tournée trouvée';
+    select.appendChild(opt);
+    return;
+  }
 
   tours.forEach(t => {
     const opt = document.createElement('option');
