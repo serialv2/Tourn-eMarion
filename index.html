@@ -1,238 +1,67 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kilomètres tournée infirmière</title>
+<title>Tournées infirmières Supabase</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{font-family:Arial;margin:20px;background:#f5f5f5}
-.card{background:white;padding:15px;border-radius:10px;margin-bottom:15px}
-button{padding:12px;border:0;border-radius:8px;margin:4px;font-weight:bold}
-.primary{background:#111;color:white}
-.secondary{background:#ddd}
-input{width:100%;padding:10px;margin-top:5px;margin-bottom:10px}
-.row{display:flex;justify-content:space-between;padding:8px;border-bottom:1px solid #eee}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}.header{background:#1769aa;color:white;padding:16px}.header h1{margin:0;font-size:22px}.header p{margin:6px 0 0;font-size:13px;opacity:.9}.config{background:#fff7ed;border-bottom:1px solid #fed7aa;padding:12px 16px;display:none}.config input{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:5px 0 10px}.config .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tabs{display:flex;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:0;z-index:20}.tabs button{flex:1;border-radius:0;background:white;color:#1769aa;padding:13px 8px;border:0;border-bottom:3px solid transparent}.tabs button.active{background:#eef4fb;border-bottom-color:#1769aa}.mobileTabs{display:none}.wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}.panel h2{font-size:18px;margin:0;padding:14px 16px;background:#eef4fb;border-bottom:1px solid #dce6f1}.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid #eee}.toolbar input{flex:1;min-width:180px;padding:10px;border:1px solid #ccc;border-radius:10px}button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:#1769aa;color:white}button.secondary{background:#667085}button.danger{background:#c62828}button.green{background:#188038}button.orange{background:#f57c00}.list{padding:12px;max-height:calc(100vh - 270px);overflow:auto}.card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:white;display:grid;grid-template-columns:1fr auto;gap:10px}.name{font-weight:800;font-size:15px}.addr{font-size:13px;color:#475467;margin-top:4px}.meta{font-size:12px;color:#667085;margin-top:4px}.cardActions,.routeActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.cardActions button,.routeActions button{padding:8px 9px;font-size:12px}.routeItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:10px;padding:10px;background:white}.rank{width:28px;height:28px;border-radius:50%;background:#1769aa;color:white;display:flex;align-items:center;justify-content:center;font-weight:800}.houseBtn{background:#fff7ed!important;color:#c2410c!important}.goBtn{background:#188038!important;color:white!important}.mapBtn,.moveBtn{background:#eef4fb!important;color:#1769aa!important}.empty{color:#667085;text-align:center;padding:30px 10px}.notice{font-size:12px;color:#667085;padding:0 16px 12px;line-height:1.4}.moreBox,.importBox{display:none;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa}.moreBox.open{display:flex;gap:8px;flex-wrap:wrap}.importBox textarea,.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}.segmentBox{padding:12px 16px;border-bottom:1px solid #eee;background:#fff;display:none}.segmentTitle{font-weight:800;margin-bottom:8px}.segmentButtons{display:flex;gap:8px;flex-wrap:wrap}.segmentButtons button{background:#188038}.formOverlay,.houseOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:none;align-items:center;justify-content:center;padding:16px}.formBox,.houseBox{width:100%;max-width:640px;background:white;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}.formBox h2,.houseHeader{margin:0;padding:16px 18px;background:#1769aa;color:white;font-size:20px}.houseHeader{display:flex;justify-content:space-between;align-items:center}.formContent{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:700;color:#344054}.field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial}.field textarea{min-height:80px;resize:vertical}.formButtons,.houseContent{padding:14px 16px;border-top:1px solid #eee}.housePhoto{width:100%;min-height:280px;border:0;border-radius:14px;background:#eef4fb;object-fit:cover;display:block}.houseButtons{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}.houseButtons button{flex:1}@media(max-width:900px){.config .grid{grid-template-columns:1fr}.mobileTabs{display:flex;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:48px;z-index:19}.mobileTabs button{flex:1;border-radius:0;background:white;color:#1769aa;border-bottom:3px solid transparent}.mobileTabs button.active{background:#eef4fb;border-bottom-color:#1769aa}body.mobile-patients #routePanel{display:none}body.mobile-route #patientsPanel{display:none}.wrap{grid-template-columns:1fr;padding:10px}.panel{border-radius:12px}.list{max-height:none}.toolbar input{min-width:100%;order:-1}.toolbar button{flex:1;font-size:13px;padding:11px 8px}.card{grid-template-columns:1fr}.cardActions button{flex:1}.routeItem{grid-template-columns:30px 1fr}.routeActions{grid-column:1/-1;justify-content:stretch}.routeActions button{flex:1}.formContent{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-
-<div class="card">
-<h2>Tournée</h2>
-
-<label>Nom tournée</label>
-<input id="tourName">
-
-<label>Patient</label>
-<input id="patientName">
-
-<label>Adresse</label>
-<input id="patientAddress">
-
-<button id="startBtn" class="primary">Démarrer</button>
-<button id="stopBtn" class="secondary">Arrêt</button>
-<button id="resetBtn" class="secondary">Reset</button>
-<button id="exportBtn" class="secondary">Export Excel</button>
-<button id="shareBtn" class="secondary">Partager tournée GPS</button>
-
-<div id="status" style="padding:10px;border-radius:8px;background:#eee;font-weight:bold;margin-top:10px;margin-bottom:10px">Statut : tournée non démarrée</div>
-<h3 id="total">Total : 0 km</h3>
-
-<div id="table"></div>
+<div class="header"><h1>Tournées infirmières</h1><p>Données Supabase : tournées, patients, ordre, Waze, Maps et Street View.</p></div>
+<div id="configBox" class="config"><b>Configuration Supabase</b><div class="grid"><div><label>SUPABASE_URL</label><input id="supabaseUrl" placeholder="https://xxxxx.supabase.co"></div><div><label>SUPABASE_ANON_KEY</label><input id="supabaseKey" placeholder="eyJ..."></div></div><button class="green" onclick="saveConfig()">Enregistrer la configuration</button></div>
+<div class="tabs" id="tourTabs"></div>
+<div class="mobileTabs"><button id="tabPatients" class="active" onclick="showMobileTab('patients')">Patients</button><button id="tabRoute" onclick="showMobileTab('route')">Tournée</button></div>
+<div class="wrap">
+<section id="patientsPanel" class="panel"><h2 id="patientsTitle">Patients</h2><div class="toolbar"><input id="search" placeholder="Rechercher nom, rue, ville…" oninput="renderPatients()"><button class="green" onclick="openPatientForm()">+ Patient</button><button class="secondary" onclick="toggleMorePatients()">Options</button></div><div id="morePatients" class="moreBox"><button class="green" onclick="openTourForm()">+ Nouvelle tournée</button><button class="orange" onclick="toggleImport()">Import texte</button><button onclick="reloadAll()">Recharger</button><button class="secondary" onclick="toggleConfig()">Config</button></div><div id="importBox" class="importBox"><div class="meta">Format : Nom;Adresse;Horaire;Note ou sauvegarde JSON</div><textarea id="importText"></textarea><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="green" onclick="importPatients()">Importer</button><button class="secondary" onclick="toggleImport()">Fermer</button></div></div><div class="notice">Chaque patient appartient à la tournée sélectionnée.</div><div id="patients" class="list"></div></section>
+<section id="routePanel" class="panel"><h2 id="routeTitle">Ordre de tournée</h2><div class="toolbar"><button class="green" onclick="openGoogleMapsFullOrFirst()">Google Maps</button><button onclick="openWazeNext()">Waze 1er arrêt</button><button class="secondary" onclick="toggleMoreRoute()">Options</button></div><div id="moreRoute" class="moreBox"><button class="orange" onclick="renderSegments(true)">Fractionner Maps</button><button class="secondary" onclick="copyRoute()">Copier tournée</button></div><div class="notice">Le bouton <b>🚗 Aller à</b> ouvre Waze directement vers le patient.</div><div id="segments" class="segmentBox"></div><div id="route" class="list"></div><div style="padding:12px 16px;border-top:1px solid #eee"><textarea id="routeText" class="textarea" readonly></textarea></div></section>
 </div>
-
+<div id="patientFormOverlay" class="formOverlay"><div class="formBox"><h2 id="formTitle">Nouveau patient</h2><div class="formContent"><div class="field"><label>Nom / Prénom *</label><input id="patientName"></div><div class="field"><label>Téléphone</label><input id="patientPhone"></div><div class="field full"><label>Adresse complète *</label><input id="patientAddress"></div><div class="field"><label>Horaires</label><input id="patientTime"></div><div class="field full"><label>Notes</label><textarea id="patientNote"></textarea></div></div><div class="formButtons"><button class="secondary" onclick="closePatientForm()">Annuler</button><button class="green" onclick="savePatient()">Enregistrer</button></div></div></div>
+<div id="tourFormOverlay" class="formOverlay"><div class="formBox"><h2>Nouvelle tournée</h2><div class="formContent"><div class="field full"><label>Nom</label><input id="tourName" placeholder="Ex : Saint-Saulve"></div><div class="field full"><label>Description</label><input id="tourDescription"></div></div><div class="formButtons"><button class="secondary" onclick="closeTourForm()">Annuler</button><button class="green" onclick="saveTour()">Créer</button></div></div></div>
+<div id="houseOverlay" class="houseOverlay"><div class="houseBox"><div class="houseHeader"><span id="houseTitle">Maison</span><button class="secondary" onclick="closeHousePopup()">Fermer</button></div><div class="houseContent"><img id="housePhoto" class="housePhoto" alt="Street View"><div id="houseAddress" class="meta" style="margin-top:10px"></div><div class="houseButtons"><button class="green" onclick="openCurrentHouseMaps()">Maps</button><button onclick="openCurrentHouseWaze()">Waze</button><button class="secondary" onclick="closeHousePopup()">Retour</button></div></div></div></div>
 <script>
-const STORAGE_KEY="tournee_infirmiere_data"
-let running=false
-let lastPoint=null
-let stops=[]
-let tourNameValue=""
+const DEFAULT_SUPABASE_URL = 'https://iybjtvwdnqnebuexesiz.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5Ymp0dndkbnFuZWJ1ZXhlc2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDEwNjgsImV4cCI6MjA5MTU3NzA2OH0.dAImywya67QbKj1dCR3GZg4p24jxPPvQi5wGkJvdNLk';
 
-function saveData(){
-localStorage.setItem(STORAGE_KEY,JSON.stringify({
-running:running,
-lastPoint:lastPoint,
-stops:stops,
-tourName:document.getElementById("tourName").value
-}))
-}
-
-function loadData(){
-let raw=localStorage.getItem(STORAGE_KEY)
-if(!raw) return
-try{
-let data=JSON.parse(raw)
-running=!!data.running
-lastPoint=data.lastPoint||null
-stops=data.stops||[]
-tourNameValue=data.tourName||""
-}catch(e){}
-}
-
-function getPosition(){
-return new Promise((res,rej)=>{
-navigator.geolocation.getCurrentPosition(p=>{
-res({lat:p.coords.latitude,lon:p.coords.longitude})
-},rej,{enableHighAccuracy:true})
-})
-}
-
-async function roadDistance(a,b){
-let url=`https://router.project-osrm.org/route/v1/driving/${a.lon},${a.lat};${b.lon},${b.lat}?overview=false`
-let r=await fetch(url)
-let j=await r.json()
-return j.routes[0].distance/1000
-}
-
-async function reverse(lat,lon){
-try{
-let r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
-let j=await r.json()
-return j.display_name||""
-}catch{return ""}
-}
-
-function render(){
-let t=0
-let html=""
-stops.forEach(s=>{
-t+=s.km
-html+=`<div class="row">
-<div>
-<b>${s.patient}</b><br>
-<small>${s.address}</small><br>
-<small>GPS : ${typeof s.lat==="number" ? s.lat.toFixed(5) : ""}, ${typeof s.lon==="number" ? s.lon.toFixed(5) : ""}</small>
-</div>
-<div>${s.km.toFixed(2)} km</div>
-</div>`
-})
-document.getElementById("table").innerHTML=html
-
-document.getElementById("tourName").value=tourNameValue
-document.getElementById("total").innerText="Total : "+t.toFixed(2)+" km"
-let status=document.getElementById("status")
-if(running){
-status.innerText="Statut : tournée démarrée"
-status.style.background="#dcfce7"
-status.style.color="#166534"
-}else{
-status.innerText="Statut : tournée non démarrée"
-status.style.background="#eee"
-status.style.color="#111"
-}
-}
-
-function updateTourName(){
-tourNameValue=document.getElementById("tourName").value
-saveData()
-}
-
-document.getElementById("startBtn").onclick=async()=>{
-lastPoint=await getPosition()
-running=true
-tourNameValue=document.getElementById("tourName").value
-saveData()
-}
-
-document.getElementById("stopBtn").onclick=async()=>{
-if(!running) return
-
-let p=await getPosition()
-let km=await roadDistance(lastPoint,p)
-
-let patient=document.getElementById("patientName").value||"Patient"
-let addr=document.getElementById("patientAddress").value
-
-if(!addr) addr=await reverse(p.lat,p.lon)
-
-stops.push({patient:patient,address:addr,km:km,lat:p.lat,lon:p.lon})
-
-lastPoint=p
-saveData()
-
-document.getElementById("patientName").value=""
-document.getElementById("patientAddress").value=""
-
-render()
-}
-
-
-
-document.getElementById("resetBtn").onclick=()=>{
-stops=[]
-running=false
-lastPoint=null
-tourNameValue=""
-document.getElementById("patientName").value=""
-document.getElementById("patientAddress").value=""
-localStorage.removeItem(STORAGE_KEY)
-render()
-}
-
-document.getElementById("exportBtn").onclick=()=>{
-let rows=[["Patient","Adresse","Distance km","Latitude","Longitude"]]
-stops.forEach(s=>{
-rows.push([s.patient,s.address,s.km.toFixed(2),s.lat||"",s.lon||""])
-})
-
-let csv=rows.map(r=>r.join(";")).join("\n")
-
-let blob=new Blob([csv])
-let a=document.createElement("a")
-a.href=URL.createObjectURL(blob)
-a.download="tournee.csv"
-a.click()
-}
-
-document.getElementById("shareBtn").onclick=async()=>{
-if(stops.length===0){
-alert("Aucun arrêt à partager")
-return
-}
-
-let points=stops
-.map(s=>{
-if(typeof s.lat==="number" && typeof s.lon==="number") return `${s.lat},${s.lon}`
-if(s.address&&s.address.trim()!=="") return s.address
-return null
-})
-.filter(Boolean)
-
-if(points.length===0){
-alert("Aucun point disponible pour le GPS")
-return
-}
-
-let base="https://www.google.com/maps/dir/"
-let path=points.map(a=>encodeURIComponent(a)).join("/")
-let url=base+path
-
-if(navigator.share){
-try{
-await navigator.share({
-title:"Tournée infirmière",
-text:"Voici la tournée à ouvrir dans le GPS",
-url:url
-})
-}catch(e){}
-}else{
-window.open(url,"_blank")
-}
-}
-
-document.getElementById("tourName").addEventListener("input",updateTourName)
-
-loadData()
-render()
+const GOOGLE_MAX_STOPS_PER_SEGMENT=9;
+const GOOGLE_STREET_VIEW_API_KEY="AIzaSyDXeTRU9Ex3nDGMgkH_r4Z8SEFXprnIcns";
+let supabaseClient=null,tours=[],currentTourId=localStorage.getItem('current_tour_id')||null,patients=[],editingPatientId=null,currentHouseAddress="";
+function getConfig(){return{url:localStorage.getItem('supabase_url')||DEFAULT_SUPABASE_URL,key:localStorage.getItem('supabase_key')||DEFAULT_SUPABASE_ANON_KEY}}
+function initSupabase(){const c=getConfig();supabaseUrl.value=c.url;supabaseKey.value=c.key;if(!c.url||!c.key){configBox.style.display='block';return false}supabaseClient=supabase.createClient(c.url,c.key);return true}
+function saveConfig(){localStorage.setItem('supabase_url',supabaseUrl.value.trim());localStorage.setItem('supabase_key',supabaseKey.value.trim());location.reload()}
+function toggleConfig(){configBox.style.display=configBox.style.display==='block'?'none':'block'}
+async function reloadAll(){if(!supabaseClient&&!initSupabase())return;await loadTours();await loadPatients()}
+async function loadTours(){const{data,error}=await supabaseClient.from('tours').select('*').eq('is_active',true).order('name');if(error){alert(error.message);return}tours=data||[];if(!currentTourId&&tours.length)currentTourId=tours[0].id;if(currentTourId&&!tours.some(t=>t.id===currentTourId)&&tours.length)currentTourId=tours[0].id;localStorage.setItem('current_tour_id',currentTourId||'');renderTourTabs()}
+async function loadPatients(){if(!currentTourId){patients=[];renderPatients();renderRoute();return}const{data,error}=await supabaseClient.from('patients').select('*').eq('tour_id',currentTourId).eq('is_active',true).order('visit_order').order('created_at');if(error){alert(error.message);return}patients=data||[];const t=tours.find(x=>x.id===currentTourId);patientsTitle.textContent='Patients - '+(t?t.name:'');routeTitle.textContent='Ordre de tournée - '+(t?t.name:'');renderPatients();renderRoute();renderSegments(false)}
+function renderTourTabs(){tourTabs.innerHTML='';tours.forEach(t=>{const b=document.createElement('button');b.textContent=t.name;b.className=t.id===currentTourId?'active':'';b.onclick=async()=>{currentTourId=t.id;localStorage.setItem('current_tour_id',currentTourId);renderTourTabs();await loadPatients()};tourTabs.appendChild(b)});const add=document.createElement('button');add.textContent='+';add.onclick=openTourForm;tourTabs.appendChild(add)}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}function enc(s){return encodeURIComponent(s)}function esc(s){return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}
+function renderPatients(){const q=norm(search.value||'');patientsBox=patients;const box=document.getElementById('patients');box.innerHTML='';const f=patients.filter(p=>norm(p.name+' '+p.address+' '+(p.notes||'')).includes(q));if(!f.length){box.innerHTML='<div class="empty">Aucun patient.</div>';return}f.forEach(p=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<div><div class="name">${esc(p.name)}</div><div class="addr">${esc(p.address||'Adresse à compléter')}</div><div class="meta">${esc(p.time_info||'')}${p.phone?' — Tél : '+esc(p.phone):''}${p.notes?' — '+esc(p.notes):''}</div></div><div class="cardActions"><button onclick="editPatient('${p.id}')">Modifier</button><button class="danger" onclick="deletePatient('${p.id}')">Supprimer</button></div>`;box.appendChild(d)})}
+function renderRoute(){const box=route;box.innerHTML='';if(!patients.length){box.innerHTML='<div class="empty">Aucun patient.</div>';routeText.value='';return}patients.forEach((p,pos)=>{const d=document.createElement('div');d.className='routeItem';d.innerHTML=`<div class="rank">${pos+1}</div><div><div class="name">${esc(p.name)}</div><div class="addr">${esc(p.address||'Adresse à compléter')}</div><div class="meta">${esc(p.time_info||'')}${p.notes?' — '+esc(p.notes):''}</div></div><div class="routeActions"><button class="houseBtn" onclick="viewHouse('${p.id}')">🏠 Maison</button><button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller à</button><button class="mapBtn" onclick="openPatientMap('${p.id}')">📍 Maps</button><button class="moveBtn" onclick="movePatient(${pos},-1)">↑</button><button class="moveBtn" onclick="movePatient(${pos},1)">↓</button></div>`;box.appendChild(d)});routeText.value=patients.map((p,i)=>`${i+1}. ${p.name} — ${p.address}`).join('\n')}
+async function movePatient(pos,dir){const n=pos+dir;if(n<0||n>=patients.length)return;[patients[pos],patients[n]]=[patients[n],patients[pos]];patients.forEach((p,i)=>p.visit_order=i+1);renderRoute();for(const p of patients){const{error}=await supabaseClient.from('patients').update({visit_order:p.visit_order}).eq('id',p.id);if(error){alert(error.message);break}}await loadPatients()}
+function openPatientForm(){editingPatientId=null;formTitle.textContent='Nouveau patient';patientName.value='';patientPhone.value='';patientAddress.value='';patientTime.value='';patientNote.value='';patientFormOverlay.style.display='flex'}
+function editPatient(id){const p=patients.find(x=>x.id===id);if(!p)return;editingPatientId=id;formTitle.textContent='Modifier patient';patientName.value=p.name||'';patientPhone.value=p.phone||'';patientAddress.value=p.address||'';patientTime.value=p.time_info||'';patientNote.value=p.notes||'';patientFormOverlay.style.display='flex'}
+function closePatientForm(){patientFormOverlay.style.display='none'}
+async function savePatient(){const payload={name:patientName.value.trim(),phone:patientPhone.value.trim(),address:patientAddress.value.trim(),time_info:patientTime.value.trim(),notes:patientNote.value.trim()};if(!payload.name){alert('Nom obligatoire');return}if(!payload.address){alert('Adresse obligatoire');return}if(editingPatientId){var{error}=await supabaseClient.from('patients').update(payload).eq('id',editingPatientId)}else{payload.tour_id=currentTourId;payload.visit_order=patients.length+1;var{error}=await supabaseClient.from('patients').insert(payload)}if(error){alert(error.message);return}closePatientForm();await loadPatients()}
+async function deletePatient(id){const p=patients.find(x=>x.id===id);if(!p||!confirm('Supprimer '+p.name+' ?'))return;const{error}=await supabaseClient.from('patients').update({is_active:false}).eq('id',id);if(error){alert(error.message);return}await loadPatients()}
+function openTourForm(){tourName.value='';tourDescription.value='';tourFormOverlay.style.display='flex'}function closeTourForm(){tourFormOverlay.style.display='none'}
+async function saveTour(){const name=tourName.value.trim(),description=tourDescription.value.trim();if(!name){alert('Nom obligatoire');return}const{data,error}=await supabaseClient.from('tours').insert({name,description}).select().single();if(error){alert(error.message);return}currentTourId=data.id;closeTourForm();await reloadAll()}
+function getPatient(id){return patients.find(p=>p.id===id)}
+function goToPatient(id){const p=getPatient(id);if(!p||!p.address){alert('Adresse manquante');return}window.open('https://waze.com/ul?q='+enc(p.address)+'&navigate=yes','_blank')}
+function openPatientMap(id){const p=getPatient(id);if(!p||!p.address){alert('Adresse manquante');return}window.open('https://www.google.com/maps/search/?api=1&query='+enc(p.address),'_blank')}
+function viewHouse(id){const p=getPatient(id);if(!p||!p.address){alert('Adresse manquante');return}currentHouseAddress=p.address;houseTitle.textContent='🏠 '+p.name;houseAddress.textContent=p.address;houseOverlay.style.display='flex';housePhoto.src='https://maps.googleapis.com/maps/api/streetview?size=900x520&fov=80&pitch=0&location='+enc(p.address)+'&key='+enc(GOOGLE_STREET_VIEW_API_KEY)}
+function closeHousePopup(){houseOverlay.style.display='none'}function openCurrentHouseMaps(){if(currentHouseAddress)window.open('https://www.google.com/maps/search/?api=1&query='+enc(currentHouseAddress),'_blank')}function openCurrentHouseWaze(){if(currentHouseAddress)window.open('https://waze.com/ul?q='+enc(currentHouseAddress)+'&navigate=yes','_blank')}
+function getSelectedAddresses(){return patients.filter(p=>p.address).map(p=>({name:p.name,address:p.address}))}function buildGoogleMapsUrl(stops,origin){if(!stops.length)return'';let url='https://www.google.com/maps/dir/?api=1&travelmode=driving';if(origin)url+='&origin=Maing, France';if(stops.length===1)return url+'&destination='+enc(stops[0].address);url+='&destination='+enc(stops[stops.length-1].address);const w=stops.slice(0,-1).map(s=>s.address).join('|');if(w)url+='&waypoints='+enc(w);return url}
+function makeSegments(stops){const a=[];for(let i=0;i<stops.length;i+=GOOGLE_MAX_STOPS_PER_SEGMENT)a.push(stops.slice(i,i+GOOGLE_MAX_STOPS_PER_SEGMENT));return a}
+function renderSegments(show){const box=segments,stops=getSelectedAddresses();if(!stops.length){box.style.display='none';box.innerHTML='';if(show)alert('Aucune adresse');return}const segs=makeSegments(stops);box.style.display='block';let h='<div class="segmentTitle">Itinéraires Google Maps fractionnés</div><div class="segmentButtons">';segs.forEach((seg,i)=>{const s=i*GOOGLE_MAX_STOPS_PER_SEGMENT+1,e=s+seg.length-1;h+=`<button onclick="openGoogleSegment(${i})">Segment ${i+1} : ${s} à ${e}</button>`});box.innerHTML=h+'</div>'}
+function openGoogleSegment(i){const seg=makeSegments(getSelectedAddresses())[i];if(seg)window.open(buildGoogleMapsUrl(seg,i===0),'_blank')}function openGoogleMapsFullOrFirst(){const stops=getSelectedAddresses();if(!stops.length){alert('Aucune adresse');return}if(stops.length>GOOGLE_MAX_STOPS_PER_SEGMENT){renderSegments(true);alert('Plus de 9 arrêts : segments créés');return}window.open(buildGoogleMapsUrl(stops,true),'_blank')}function openWazeNext(){if(!patients.length){alert('Aucun patient');return}goToPatient(patients[0].id)}
+async function copyRoute(){const t=patients.map((p,i)=>`${i+1}. ${p.name} — ${p.address}`).join('\n');routeText.value=t;try{await navigator.clipboard.writeText(t);alert('Tournée copiée')}catch(e){alert('Copie impossible')}}
+function toggleMorePatients(){morePatients.classList.toggle('open')}function toggleMoreRoute(){moreRoute.classList.toggle('open')}function toggleImport(){importBox.style.display=importBox.style.display==='block'?'none':'block'}
+async function importPatients(){const text=importText.value.trim();if(!text){alert('Colle au moins une ligne');return}let rows=[];try{const data=JSON.parse(text);const arr=Array.isArray(data)?data:(Array.isArray(data.patients)?data.patients:[]);rows=arr.map((p,idx)=>({tour_id:currentTourId,name:String(p.name||'').trim(),address:String(p.address||'').trim(),phone:String(p.phone||'').trim(),time_info:String(p.time_info||p.time||'').trim(),notes:String(p.notes||p.note||'').trim(),visit_order:patients.length+idx+1})).filter(p=>p.name&&p.address)}catch(e){}if(!rows.length){text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach((line,idx)=>{const p=line.split(';').map(x=>x.trim());if(p[0]&&p[1])rows.push({tour_id:currentTourId,name:p[0],address:p[1],time_info:p[2]||'',notes:p[3]||'',visit_order:patients.length+idx+1})})}if(!rows.length){alert('Aucune ligne valide');return}const{error}=await supabaseClient.from('patients').insert(rows);if(error){alert(error.message);return}importText.value='';await loadPatients();alert(rows.length+' patient(s) importé(s)')}
+function showMobileTab(w){document.body.classList.remove('mobile-patients','mobile-route');tabPatients.classList.remove('active');tabRoute.classList.remove('active');if(w==='route'){document.body.classList.add('mobile-route');tabRoute.classList.add('active')}else{document.body.classList.add('mobile-patients');tabPatients.classList.add('active')}}
+patientFormOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closePatientForm()});tourFormOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closeTourForm()});houseOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closeHousePopup()});
+(async()=>{if(window.innerWidth<=900)showMobileTab('patients');if(initSupabase())await reloadAll()})();
 </script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
