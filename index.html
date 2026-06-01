@@ -219,6 +219,34 @@ button.light{background:#eef4fb;color:#1769aa}
   </div>
 </div>
 
+<div id="dailyRouteOverlay" class="overlay">
+  <div class="box">
+    <h2 id="dailyRouteTitle">Tournée type</h2>
+
+    <div id="dailySaveBox" class="formContent">
+      <div class="field full">
+        <label>Nom de la tournée type</label>
+        <input id="dailyRouteName" placeholder="Ex : Lundi matin, Mardi soir, Remplacement Valenciennes">
+      </div>
+    </div>
+
+    <div id="dailyRestoreBox" style="padding:16px;display:none">
+      <div class="field full">
+        <label>Choisir une tournée sauvegardée</label>
+        <select id="dailyRouteSelect" style="padding:11px;border:1px solid #cfd8e3;border-radius:10px;width:100%;font-weight:700"></select>
+      </div>
+      <div id="dailyRouteInfo" class="meta" style="margin-top:10px"></div>
+    </div>
+
+    <div class="formButtons">
+      <button class="secondary" onclick="closeDailyRouteForm()">Annuler</button>
+      <button id="dailySaveBtn" class="green" onclick="saveDailyRoute()">Sauvegarder</button>
+      <button id="dailyRestoreBtn" class="green" onclick="restoreDailyRoute()" style="display:none">Restaurer</button>
+      <button id="dailyDeleteBtn" class="danger" onclick="deleteDailyRoute()" style="display:none">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = "https://iybjtvwdnqnebuexesiz.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5Ymp0dndkbnFuZWJ1ZXhlc2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDEwNjgsImV4cCI6MjA5MTU3NzA2OH0.dAImywya67QbKj1dCR3GZg4p24jxPPvQi5wGkJvdNLk";
@@ -1048,7 +1076,9 @@ function showMobileTab(which){
 }
 
 ["patientOverlay","tourOverlay","houseOverlay","dailyRouteOverlay"].forEach(id => {
-  $(id).addEventListener("click", e => {
+  const el = $(id);
+  if(!el) return;
+  el.addEventListener("click", e => {
     if(e.target === e.currentTarget){
       e.currentTarget.style.display = "none";
     }
@@ -1060,34 +1090,6 @@ function showMobileTab(which){
   await reloadAll();
 })();
 </script>
-
-<div id="dailyRouteOverlay" class="overlay">
-  <div class="box">
-    <h2 id="dailyRouteTitle">Tournée type</h2>
-
-    <div id="dailySaveBox" class="formContent">
-      <div class="field full">
-        <label>Nom de la tournée type</label>
-        <input id="dailyRouteName" placeholder="Ex : Lundi matin, Mardi soir, Remplacement Valenciennes">
-      </div>
-    </div>
-
-    <div id="dailyRestoreBox" style="padding:16px;display:none">
-      <div class="field full">
-        <label>Choisir une tournée sauvegardée</label>
-        <select id="dailyRouteSelect" style="padding:11px;border:1px solid #cfd8e3;border-radius:10px;width:100%;font-weight:700"></select>
-      </div>
-      <div id="dailyRouteInfo" class="meta" style="margin-top:10px"></div>
-    </div>
-
-    <div class="formButtons">
-      <button class="secondary" onclick="closeDailyRouteForm()">Annuler</button>
-      <button id="dailySaveBtn" class="green" onclick="saveDailyRoute()">Sauvegarder</button>
-      <button id="dailyRestoreBtn" class="green" onclick="restoreDailyRoute()" style="display:none">Restaurer</button>
-      <button id="dailyDeleteBtn" class="danger" onclick="deleteDailyRoute()" style="display:none">Supprimer</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
