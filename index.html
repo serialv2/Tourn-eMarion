@@ -136,7 +136,139 @@ function renderSegments(show){const box=segments,stops=getSelectedAddresses();if
 function openGoogleSegment(i){const seg=makeSegments(getSelectedAddresses())[i];if(seg)window.open(buildGoogleMapsUrl(seg,i===0),'_blank')}function openGoogleMapsFullOrFirst(){const stops=getSelectedAddresses();if(!stops.length){alert('Aucune adresse');return}if(stops.length>GOOGLE_MAX_STOPS_PER_SEGMENT){renderSegments(true);alert('Plus de 9 arrêts : segments créés');return}window.open(buildGoogleMapsUrl(stops,true),'_blank')}function openWazeNext(){if(!patients.length){alert('Aucun patient');return}goToPatient(patients[0].id)}
 async function copyRoute(){const t=patients.map((p,i)=>`${i+1}. ${p.name} — ${p.address}`).join('\n');routeText.value=t;try{await navigator.clipboard.writeText(t);alert('Tournée copiée')}catch(e){alert('Copie impossible')}}
 function toggleMorePatients(){morePatients.classList.toggle('open')}function toggleMoreRoute(){moreRoute.classList.toggle('open')}function toggleImport(){importBox.style.display=importBox.style.display==='block'?'none':'block'}
-async function importPatients(){const text=importText.value.trim();if(!text){alert('Colle au moins une ligne');return}let rows=[];try{const data=JSON.parse(text);const arr=Array.isArray(data)?data:(Array.isArray(data.patients)?data.patients:[]);rows=arr.map((p,idx)=>({tour_id:currentTourId,name:String(p.name||'').trim(),address:String(p.address||'').trim(),phone:String(p.phone||'').trim(),time_info:String(p.time_info||p.time||'').trim(),notes:String(p.notes||p.note||'').trim(),visit_order:patients.length+idx+1})).filter(p=>p.name&&p.address)}catch(e){}if(!rows.length){text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean).forEach((line,idx)=>{const p=line.split(';').map(x=>x.trim());if(p[0]&&p[1])rows.push({tour_id:currentTourId,name:p[0],address:p[1],time_info:p[2]||'',notes:p[3]||'',visit_order:patients.length+idx+1})})}if(!rows.length){alert('Aucune ligne valide');return}const{error}=await supabaseClient.from('patients').insert(rows);if(error){alert(error.message);return}importText.value='';await loadPatients();alert(rows.length+' patient(s) importé(s)')}
+
+async function importPatients(){
+  if(!currentTourId){
+    alert('Choisis d’abord une tournée dans la liste.');
+    return;
+  }
+
+  const text = document.getElementById('importText').value.trim();
+  if(!text){
+    alert('Colle au moins une ligne ou un JSON.');
+    return;
+  }
+
+  let rows = [];
+
+  // 1) Import JSON ancienne version : { patients: [...], selected: [...] }
+  try {
+    const data = JSON.parse(text);
+
+    if(data && Array.isArray(data.patients)){
+      let orderedPatients = [];
+
+      if(Array.isArray(data.selected) && data.selected.length > 0){
+        // On respecte l'ordre de passage sauvegardé
+        data.selected.forEach(index => {
+          if(Number.isInteger(index) && data.patients[index]){
+            orderedPatients.push(data.patients[index]);
+          }
+        });
+
+        // On ajoute ensuite les patients non sélectionnés, à la fin
+        data.patients.forEach((p, index) => {
+          if(!data.selected.includes(index)){
+            orderedPatients.push(p);
+          }
+        });
+      }else{
+        orderedPatients = data.patients;
+      }
+
+      rows = orderedPatients.map((p, idx) => ({
+        tour_id: currentTourId,
+        name: String(p.name || '').trim(),
+        address: String(p.address || '').trim(),
+        phone: String(p.phone || '').trim(),
+        time_info: String(p.time || p.time_info || '').trim(),
+        notes: String(p.note || p.notes || '').trim(),
+        visit_order: idx + 1,
+        is_active: true
+      })).filter(p => p.name && p.address);
+    }
+
+    // 2) Import JSON tableau direct : [ {name,address...}, ... ]
+    else if(Array.isArray(data)){
+      rows = data.map((p, idx) => ({
+        tour_id: currentTourId,
+        name: String(p.name || '').trim(),
+        address: String(p.address || '').trim(),
+        phone: String(p.phone || '').trim(),
+        time_info: String(p.time || p.time_info || '').trim(),
+        notes: String(p.note || p.notes || '').trim(),
+        visit_order: idx + 1,
+        is_active: true
+      })).filter(p => p.name && p.address);
+    }
+  } catch(e) {
+    // Pas du JSON, on tente le format texte
+  }
+
+  // 3) Import texte : Nom;Adresse;Horaire;Note
+  if(!rows.length){
+    text.split(/\r?\n/)
+      .map(x => x.trim())
+      .filter(Boolean)
+      .forEach((line, idx) => {
+        const p = line.split(';').map(x => x.trim());
+        if(p[0] && p[1]){
+          rows.push({
+            tour_id: currentTourId,
+            name: p[0],
+            address: p[1],
+            phone: '',
+            time_info: p[2] || '',
+            notes: p[3] || '',
+            visit_order: patients.length + idx + 1,
+            is_active: true
+          });
+        }
+      });
+  }
+
+  if(!rows.length){
+    alert('Aucun patient valide trouvé dans l’import.');
+    return;
+  }
+
+  const tour = tours.find(t => t.id === currentTourId);
+  const tourName = tour ? tour.name : 'la tournée sélectionnée';
+
+  if(!confirm('Importer ' + rows.length + ' patient(s) dans la tournée "' + tourName + '" ?')){
+    return;
+  }
+
+  // Option de sécurité : éviter doublons stricts nom + adresse dans la tournée actuelle
+  const existingKeys = new Set(
+    patients.map(p => norm((p.name || '') + '|' + (p.address || '')))
+  );
+
+  const filteredRows = rows.filter(p => {
+    const key = norm((p.name || '') + '|' + (p.address || ''));
+    return !existingKeys.has(key);
+  });
+
+  if(!filteredRows.length){
+    alert('Tous les patients semblent déjà exister dans cette tournée.');
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from('patients')
+    .insert(filteredRows);
+
+  if(error){
+    alert('Erreur import Supabase : ' + error.message);
+    return;
+  }
+
+  document.getElementById('importText').value = '';
+  await loadPatients();
+  alert(filteredRows.length + ' patient(s) importé(s) dans "' + tourName + '".');
+}
+
+
 function showMobileTab(w){document.body.classList.remove('mobile-patients','mobile-route');tabPatients.classList.remove('active');tabRoute.classList.remove('active');if(w==='route'){document.body.classList.add('mobile-route');tabRoute.classList.add('active')}else{document.body.classList.add('mobile-patients');tabPatients.classList.add('active')}}
 patientFormOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closePatientForm()});tourFormOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closeTourForm()});houseOverlay.addEventListener('click',e=>{if(e.target===e.currentTarget)closeHousePopup()});
 (async()=>{if(window.innerWidth<=900)showMobileTab('patients');if(initSupabase())await reloadAll()})();
