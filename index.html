@@ -6,7 +6,8 @@
 <title>Tournées infirmières Supabase</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}.header{background:#1769aa;color:white;padding:16px}.header h1{margin:0;font-size:22px}.header p{margin:6px 0 0;font-size:13px;opacity:.9}.config{background:#fff7ed;border-bottom:1px solid #fed7aa;padding:12px 16px;display:none}.config input{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:5px 0 10px}.config .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tabs{display:flex;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:0;z-index:20}.tabs button{flex:1;border-radius:0;background:white;color:#1769aa;padding:13px 8px;border:0;border-bottom:3px solid transparent}.tabs button.active{background:#eef4fb;border-bottom-color:#1769aa}.mobileTabs{display:none}.wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}.panel h2{font-size:18px;margin:0;padding:14px 16px;background:#eef4fb;border-bottom:1px solid #dce6f1}.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid #eee}.toolbar input{flex:1;min-width:180px;padding:10px;border:1px solid #ccc;border-radius:10px}button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:#1769aa;color:white}button.secondary{background:#667085}button.danger{background:#c62828}button.green{background:#188038}button.orange{background:#f57c00}.list{padding:12px;max-height:calc(100vh - 270px);overflow:auto}.card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:white;display:grid;grid-template-columns:1fr auto;gap:10px}.name{font-weight:800;font-size:15px}.addr{font-size:13px;color:#475467;margin-top:4px}.meta{font-size:12px;color:#667085;margin-top:4px}.cardActions,.routeActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.cardActions button,.routeActions button{padding:8px 9px;font-size:12px}.routeItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:10px;padding:10px;background:white}.rank{width:28px;height:28px;border-radius:50%;background:#1769aa;color:white;display:flex;align-items:center;justify-content:center;font-weight:800}.houseBtn{background:#fff7ed!important;color:#c2410c!important}.goBtn{background:#188038!important;color:white!important}.mapBtn,.moveBtn{background:#eef4fb!important;color:#1769aa!important}.empty{color:#667085;text-align:center;padding:30px 10px}.notice{font-size:12px;color:#667085;padding:0 16px 12px;line-height:1.4}.moreBox,.importBox{display:none;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa}.moreBox.open{display:flex;gap:8px;flex-wrap:wrap}.importBox textarea,.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}.segmentBox{padding:12px 16px;border-bottom:1px solid #eee;background:#fff;display:none}.segmentTitle{font-weight:800;margin-bottom:8px}.segmentButtons{display:flex;gap:8px;flex-wrap:wrap}.segmentButtons button{background:#188038}.formOverlay,.houseOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:none;align-items:center;justify-content:center;padding:16px}.formBox,.houseBox{width:100%;max-width:640px;background:white;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}.formBox h2,.houseHeader{margin:0;padding:16px 18px;background:#1769aa;color:white;font-size:20px}.houseHeader{display:flex;justify-content:space-between;align-items:center}.formContent{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:700;color:#344054}.field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial}.field textarea{min-height:80px;resize:vertical}.formButtons,.houseContent{padding:14px 16px;border-top:1px solid #eee}.housePhoto{width:100%;min-height:280px;border:0;border-radius:14px;background:#eef4fb;object-fit:cover;display:block}.houseButtons{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}.houseButtons button{flex:1}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}.header{background:#1769aa;color:white;padding:16px}.header h1{margin:0;font-size:22px}.header p{margin:6px 0 0;font-size:13px;opacity:.9}.config{background:#fff7ed;border-bottom:1px solid #fed7aa;padding:12px 16px;display:none}.config input{width:100%;padding:10px;border:1px solid #ddd;border-radius:10px;margin:5px 0 10px}.config .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.tabs{display:flex;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:0;z-index:20}.tabs button{flex:1;border-radius:0;background:white;color:#1769aa;padding:13px 8px;border:0;border-bottom:3px solid transparent}.tabs button.active{background:#eef4fb;border-bottom-color:#1769aa}.mobileTabs{display:none}.wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}.panel h2{font-size:18px;margin:0;padding:14px 16px;background:#eef4fb;border-bottom:1px solid #dce6f1}.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid #eee}.toolbar input{flex:1;min-width:180px;padding:10px;border:1px solid #ccc;border-radius:10px}button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:#1769aa;color:white}button.secondary{background:#667085}button.danger{background:#c62828}button.green{background:#188038}button.orange{background:#f57c00}.list{padding:12px;max-height:calc(100vh - 270px);overflow:auto}.card.selected{background:#e8f5e9;border-color:#188038}
+.card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:white;display:grid;grid-template-columns:1fr auto;gap:10px}.name{font-weight:800;font-size:15px}.addr{font-size:13px;color:#475467;margin-top:4px}.meta{font-size:12px;color:#667085;margin-top:4px}.cardActions,.routeActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.cardActions button,.routeActions button{padding:8px 9px;font-size:12px}.routeItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:10px;padding:10px;background:white}.rank{width:28px;height:28px;border-radius:50%;background:#1769aa;color:white;display:flex;align-items:center;justify-content:center;font-weight:800}.houseBtn{background:#fff7ed!important;color:#c2410c!important}.goBtn{background:#188038!important;color:white!important}.mapBtn,.moveBtn{background:#eef4fb!important;color:#1769aa!important}.empty{color:#667085;text-align:center;padding:30px 10px}.notice{font-size:12px;color:#667085;padding:0 16px 12px;line-height:1.4}.moreBox,.importBox{display:none;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa}.moreBox.open{display:flex;gap:8px;flex-wrap:wrap}.importBox textarea,.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}.segmentBox{padding:12px 16px;border-bottom:1px solid #eee;background:#fff;display:none}.segmentTitle{font-weight:800;margin-bottom:8px}.segmentButtons{display:flex;gap:8px;flex-wrap:wrap}.segmentButtons button{background:#188038}.formOverlay,.houseOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:none;align-items:center;justify-content:center;padding:16px}.formBox,.houseBox{width:100%;max-width:640px;background:white;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}.formBox h2,.houseHeader{margin:0;padding:16px 18px;background:#1769aa;color:white;font-size:20px}.houseHeader{display:flex;justify-content:space-between;align-items:center}.formContent{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:700;color:#344054}.field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial}.field textarea{min-height:80px;resize:vertical}.formButtons,.houseContent{padding:14px 16px;border-top:1px solid #eee}.housePhoto{width:100%;min-height:280px;border:0;border-radius:14px;background:#eef4fb;object-fit:cover;display:block}.houseButtons{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}.houseButtons button{flex:1}
 .tourSelectorBar{
  display:flex;
  gap:10px;
@@ -65,7 +66,9 @@
 
 <div class="mobileTabs"><button id="tabPatients" class="active" onclick="showMobileTab('patients')">Patients</button><button id="tabRoute" onclick="showMobileTab('route')">Tournée</button></div>
 <div class="wrap">
-<section id="patientsPanel" class="panel"><h2 id="patientsTitle">Patients</h2><div class="toolbar"><input id="search" placeholder="Rechercher nom, rue, ville…" oninput="renderPatients()"><button class="green" onclick="openPatientForm()">+ Patient</button><button class="secondary" onclick="toggleMorePatients()">Options</button></div><div id="morePatients" class="moreBox"><button class="orange" onclick="toggleImport()">Import texte / JSON</button><button onclick="reloadAll()">Recharger</button><button class="secondary" onclick="toggleConfig()">Config</button></div><div id="importBox" class="importBox"><div class="meta">Format : Nom;Adresse;Horaire;Note ou sauvegarde JSON</div><textarea id="importText"></textarea><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="green" onclick="importPatients()">Importer</button><button class="secondary" onclick="toggleImport()">Fermer</button></div></div><div class="notice">Chaque patient appartient à la tournée sélectionnée.</div><div id="patients" class="list"></div></section>
+<section id="patientsPanel" class="panel"><h2 id="patientsTitle">Patients</h2><div class="toolbar"><input id="search" placeholder="Rechercher nom, rue, ville…" oninput="renderPatients()"><button class="green" onclick="openPatientForm()">+ Patient</button><button class="secondary" onclick="toggleMorePatients()">Options</button></div><div id="morePatients" class="moreBox"><button onclick="selectAllVisible()">Ajouter visibles à la tournée</button>
+      <button class="secondary" onclick="clearSelection()">Vider sélection</button>
+      <button class="orange" onclick="toggleImport()">Import texte / JSON</button><button onclick="reloadAll()">Recharger</button><button class="secondary" onclick="toggleConfig()">Config</button></div><div id="importBox" class="importBox"><div class="meta">Format : Nom;Adresse;Horaire;Note ou sauvegarde JSON</div><textarea id="importText"></textarea><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="green" onclick="importPatients()">Importer</button><button class="secondary" onclick="toggleImport()">Fermer</button></div></div><div class="notice">Chaque patient appartient à la tournée sélectionnée.</div><div id="patients" class="list"></div></section>
 <section id="routePanel" class="panel"><h2 id="routeTitle">Ordre de tournée</h2><div class="toolbar"><button class="green" onclick="openGoogleMapsFullOrFirst()">Google Maps</button><button onclick="openWazeNext()">Waze 1er arrêt</button><button class="secondary" onclick="toggleMoreRoute()">Options</button></div><div id="moreRoute" class="moreBox"><button class="orange" onclick="renderSegments(true)">Fractionner Maps</button><button class="secondary" onclick="copyRoute()">Copier tournée</button></div><div class="notice">Le bouton <b>🚗 Aller à</b> ouvre Waze directement vers le patient.</div><div id="segments" class="segmentBox"></div><div id="route" class="list"></div><div style="padding:12px 16px;border-top:1px solid #eee"><textarea id="routeText" class="textarea" readonly></textarea></div></section>
 </div>
 <div id="patientFormOverlay" class="formOverlay"><div class="formBox"><h2 id="formTitle">Nouveau patient</h2><div class="formContent"><div class="field"><label>Nom / Prénom *</label><input id="patientName"></div><div class="field"><label>Téléphone</label><input id="patientPhone"></div><div class="field full"><label>Adresse complète *</label><input id="patientAddress"></div><div class="field"><label>Horaires</label><input id="patientTime"></div><div class="field full"><label>Notes</label><textarea id="patientNote"></textarea></div></div><div class="formButtons"><button class="secondary" onclick="closePatientForm()">Annuler</button><button class="green" onclick="savePatient()">Enregistrer</button></div></div></div>
@@ -115,9 +118,186 @@ async function changeTourFromSelect(){
 }
 
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}function enc(s){return encodeURIComponent(s)}function esc(s){return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'","&#039;")}
-function renderPatients(){const q=norm(search.value||'');patientsBox=patients;const box=document.getElementById('patients');box.innerHTML='';const f=patients.filter(p=>norm(p.name+' '+p.address+' '+(p.notes||'')).includes(q));if(!f.length){box.innerHTML='<div class="empty">Aucun patient.</div>';return}f.forEach(p=>{const d=document.createElement('div');d.className='card';d.innerHTML=`<div><div class="name">${esc(p.name)}</div><div class="addr">${esc(p.address||'Adresse à compléter')}</div><div class="meta">${esc(p.time_info||'')}${p.phone?' — Tél : '+esc(p.phone):''}${p.notes?' — '+esc(p.notes):''}</div></div><div class="cardActions"><button onclick="editPatient('${p.id}')">Modifier</button><button class="danger" onclick="deletePatient('${p.id}')">Supprimer</button></div>`;box.appendChild(d)})}
-function renderRoute(){const box=route;box.innerHTML='';if(!patients.length){box.innerHTML='<div class="empty">Aucun patient.</div>';routeText.value='';return}patients.forEach((p,pos)=>{const d=document.createElement('div');d.className='routeItem';d.innerHTML=`<div class="rank">${pos+1}</div><div><div class="name">${esc(p.name)}</div><div class="addr">${esc(p.address||'Adresse à compléter')}</div><div class="meta">${esc(p.time_info||'')}${p.notes?' — '+esc(p.notes):''}</div></div><div class="routeActions"><button class="houseBtn" onclick="viewHouse('${p.id}')">🏠 Maison</button><button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller à</button><button class="mapBtn" onclick="openPatientMap('${p.id}')">📍 Maps</button><button class="moveBtn" onclick="movePatient(${pos},-1)">↑</button><button class="moveBtn" onclick="movePatient(${pos},1)">↓</button></div>`;box.appendChild(d)});routeText.value=patients.map((p,i)=>`${i+1}. ${p.name} — ${p.address}`).join('\n')}
-async function movePatient(pos,dir){const n=pos+dir;if(n<0||n>=patients.length)return;[patients[pos],patients[n]]=[patients[n],patients[pos]];patients.forEach((p,i)=>p.visit_order=i+1);renderRoute();for(const p of patients){const{error}=await supabaseClient.from('patients').update({visit_order:p.visit_order}).eq('id',p.id);if(error){alert(error.message);break}}await loadPatients()}
+
+function selectedStorageKey(){
+  return 'selected_patients_' + currentTourId;
+}
+
+function loadSelectedIds(){
+  if(!currentTourId){
+    selectedIds = [];
+    return;
+  }
+
+  try{
+    const raw = localStorage.getItem(selectedStorageKey());
+    selectedIds = raw ? JSON.parse(raw) : [];
+    if(!Array.isArray(selectedIds)) selectedIds = [];
+  }catch(e){
+    selectedIds = [];
+  }
+
+  // On garde uniquement les patients encore présents dans la tournée Supabase
+  const valid = new Set(patients.map(p => p.id));
+  selectedIds = selectedIds.filter(id => valid.has(id));
+}
+
+function saveSelectedIds(){
+  if(!currentTourId) return;
+  localStorage.setItem(selectedStorageKey(), JSON.stringify(selectedIds));
+}
+
+function isSelected(id){
+  return selectedIds.includes(id);
+}
+
+function togglePatientSelection(id){
+  const pos = selectedIds.indexOf(id);
+  if(pos >= 0) selectedIds.splice(pos, 1);
+  else selectedIds.push(id);
+
+  saveSelectedIds();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function selectAllVisible(){
+  const q = norm(document.getElementById('search').value || '');
+  patients.forEach(p => {
+    const match = norm(p.name + ' ' + p.address + ' ' + (p.notes || '')).includes(q);
+    if(match && !selectedIds.includes(p.id)) selectedIds.push(p.id);
+  });
+
+  saveSelectedIds();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function clearSelection(){
+  selectedIds = [];
+  saveSelectedIds();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function getRoutePatients(){
+  return selectedIds
+    .map(id => patients.find(p => p.id === id))
+    .filter(Boolean);
+}
+
+
+
+function renderPatients(){
+  const q = norm(document.getElementById('search').value || '');
+  const box = document.getElementById('patients');
+  box.innerHTML = '';
+
+  const filtered = patients.filter(p => norm(p.name + ' ' + p.address + ' ' + (p.notes || '')).includes(q));
+
+  if(!filtered.length){
+    box.innerHTML = '<div class="empty">Aucun patient.</div>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'card' + (isSelected(p.id) ? ' selected' : '');
+    div.innerHTML = `
+      <div>
+        <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
+          <input type="checkbox" ${isSelected(p.id) ? 'checked' : ''} onchange="togglePatientSelection('${p.id}')">
+          <div>
+            <div class="name">${escapeHtml(p.name)}</div>
+            <div class="addr">${escapeHtml(p.address || 'Adresse à compléter')}</div>
+            <div class="meta">${escapeHtml(p.time_info || '')}${p.phone ? ' — Tél : ' + escapeHtml(p.phone) : ''}${p.notes ? ' — ' + escapeHtml(p.notes) : ''}</div>
+          </div>
+        </label>
+      </div>
+      <div class="cardActions">
+        <button onclick="editPatient('${p.id}')">Modifier</button>
+        <button class="danger" onclick="deletePatient('${p.id}')">Supprimer</button>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+}
+
+
+function renderRoute(){
+  const box = document.getElementById('route');
+  box.innerHTML = '';
+
+  const routePatients = getRoutePatients();
+
+  if(!routePatients.length){
+    box.innerHTML = '<div class="empty">Aucun patient sélectionné pour la tournée. Coche les patients dans l’onglet Patients.</div>';
+    document.getElementById('routeText').value = '';
+    return;
+  }
+
+  routePatients.forEach((p, pos) => {
+    const div = document.createElement('div');
+    div.className = 'routeItem';
+    div.innerHTML = `
+      <div class="rank">${pos + 1}</div>
+      <div>
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="addr">${escapeHtml(p.address || 'Adresse à compléter')}</div>
+        <div class="meta">${escapeHtml(p.time_info || '')}${p.notes ? ' — ' + escapeHtml(p.notes) : ''}</div>
+      </div>
+      <div class="routeActions">
+        <button class="houseBtn" onclick="viewHouse('${p.id}')">🏠 Maison</button>
+        <button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller à</button>
+        <button class="mapBtn" onclick="openPatientMap('${p.id}')">📍 Maps</button>
+        <button class="moveBtn" onclick="movePatient(${pos},-1)">↑</button>
+        <button class="moveBtn" onclick="movePatient(${pos},1)">↓</button>
+        <button class="danger" onclick="removeFromRoute(${pos})">✕</button>
+      </div>
+    `;
+    box.appendChild(div);
+  });
+
+  document.getElementById('routeText').value = routePatients.map((p,i)=>`${i+1}. ${p.name} — ${p.address}`).join('\n');
+}
+
+
+async function movePatient(pos, dir){
+  const n = pos + dir;
+  if(n < 0 || n >= selectedIds.length) return;
+
+  [selectedIds[pos], selectedIds[n]] = [selectedIds[n], selectedIds[pos]];
+  saveSelectedIds();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+
+  // On met aussi à jour visit_order dans Supabase pour conserver l’ordre principal.
+  for(let i = 0; i < selectedIds.length; i++){
+    const id = selectedIds[i];
+    const { error } = await supabaseClient
+      .from('patients')
+      .update({visit_order: i + 1})
+      .eq('id', id);
+
+    if(error){
+      alert('Erreur ordre Supabase : ' + error.message);
+      break;
+    }
+  }
+}
+
+function removeFromRoute(pos){
+  selectedIds.splice(pos, 1);
+  saveSelectedIds();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
 function openPatientForm(){editingPatientId=null;formTitle.textContent='Nouveau patient';patientName.value='';patientPhone.value='';patientAddress.value='';patientTime.value='';patientNote.value='';patientFormOverlay.style.display='flex'}
 function editPatient(id){const p=patients.find(x=>x.id===id);if(!p)return;editingPatientId=id;formTitle.textContent='Modifier patient';patientName.value=p.name||'';patientPhone.value=p.phone||'';patientAddress.value=p.address||'';patientTime.value=p.time_info||'';patientNote.value=p.notes||'';patientFormOverlay.style.display='flex'}
 function closePatientForm(){patientFormOverlay.style.display='none'}
