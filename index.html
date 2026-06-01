@@ -153,8 +153,13 @@ button.light{background:#eef4fb;color:#1769aa}
       <button class="secondary" onclick="toggleMoreRoute()">Options</button>
     </div>
     <div id="moreRoute" class="moreBox">
+      <button class="green" onclick="saveVisitOrder()">💾 Enregistrer ordre</button>
+      <button onclick="reloadVisitOrder()">↺ Recharger ordre</button>
+      <button class="danger" onclick="clearSelection()">🗑 Vider tournée</button>
       <button class="orange" onclick="renderSegments(true)">Fractionner Maps</button>
       <button class="secondary" onclick="copyRoute()">Copier tournée</button>
+      <button class="green" onclick="openSaveDailyRouteForm()">💾 Sauvegarder tournée type</button>
+      <button onclick="openRestoreDailyRouteForm()">📂 Restaurer tournée type</button>
     </div>
     <div class="notice">Le bouton <b>🚗 Aller à</b> ouvre Waze directement vers le patient.</div>
     <div id="segments" class="segmentBox"></div>
@@ -787,6 +792,247 @@ async function copyRoute(){
   try{ await navigator.clipboard.writeText(t); alert("Tournée copiée."); }catch(e){ alert("Copie impossible."); }
 }
 
+
+async function saveVisitOrder(){
+  const r = routePatients();
+
+  if(!r.length){
+    alert("Aucun patient sélectionné dans la tournée.");
+    return;
+  }
+
+  for(let i = 0; i < r.length; i++){
+    const { error } = await db
+      .from("patients")
+      .update({ visit_order: i + 1 })
+      .eq("id", r[i].id);
+
+    if(error){
+      alert("Erreur enregistrement ordre : " + error.message);
+      return;
+    }
+  }
+
+  await loadPatients();
+
+  // On remet la sélection dans le même ordre après rechargement.
+  selectedIds = r.map(p => p.id);
+  saveSelected();
+  renderPatients();
+  renderRoute();
+
+  alert("Ordre de tournée enregistré dans Supabase.");
+}
+
+async function reloadVisitOrder(){
+  if(!currentTourId){
+    alert("Sélectionne une tournée.");
+    return;
+  }
+
+  await loadPatients();
+
+  selectedIds = patients
+    .slice()
+    .sort((a,b) => (a.visit_order || 0) - (b.visit_order || 0))
+    .map(p => p.id);
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+
+  alert("Ordre rechargé depuis Supabase.");
+}
+
+async function loadDailyRoutes(){
+  if(!currentTourId) return [];
+
+  const { data, error } = await db
+    .from("daily_routes")
+    .select("*")
+    .eq("tour_id", currentTourId)
+    .order("route_name", { ascending: true });
+
+  if(error){
+    alert("Erreur chargement tournées types : " + error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+function openSaveDailyRouteForm(){
+  const r = routePatients();
+
+  if(!r.length){
+    alert("Coche d'abord les patients de la tournée à sauvegarder.");
+    return;
+  }
+
+  $("dailyRouteTitle").textContent = "💾 Sauvegarder tournée type";
+  $("dailySaveBox").style.display = "grid";
+  $("dailyRestoreBox").style.display = "none";
+  $("dailySaveBtn").style.display = "inline-block";
+  $("dailyRestoreBtn").style.display = "none";
+  $("dailyDeleteBtn").style.display = "none";
+  $("dailyRouteName").value = "";
+  $("dailyRouteOverlay").style.display = "flex";
+}
+
+async function openRestoreDailyRouteForm(){
+  const routes = await loadDailyRoutes();
+
+  $("dailyRouteTitle").textContent = "📂 Restaurer tournée type";
+  $("dailySaveBox").style.display = "none";
+  $("dailyRestoreBox").style.display = "block";
+  $("dailySaveBtn").style.display = "none";
+  $("dailyRestoreBtn").style.display = "inline-block";
+  $("dailyDeleteBtn").style.display = "inline-block";
+
+  const select = $("dailyRouteSelect");
+  select.innerHTML = "";
+
+  if(!routes.length){
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Aucune tournée type sauvegardée";
+    select.appendChild(opt);
+    $("dailyRouteInfo").textContent = "";
+    $("dailyRestoreBtn").disabled = true;
+    $("dailyDeleteBtn").disabled = true;
+  }else{
+    routes.forEach(route => {
+      const opt = document.createElement("option");
+      opt.value = route.id;
+      opt.textContent = route.route_name;
+      opt.dataset.ids = JSON.stringify(route.selected_patient_ids || []);
+      select.appendChild(opt);
+    });
+
+    $("dailyRestoreBtn").disabled = false;
+    $("dailyDeleteBtn").disabled = false;
+    updateDailyRouteInfo();
+  }
+
+  select.onchange = updateDailyRouteInfo;
+  $("dailyRouteOverlay").style.display = "flex";
+}
+
+function updateDailyRouteInfo(){
+  const opt = $("dailyRouteSelect").selectedOptions[0];
+  if(!opt || !opt.value){
+    $("dailyRouteInfo").textContent = "";
+    return;
+  }
+
+  let ids = [];
+  try{ ids = JSON.parse(opt.dataset.ids || "[]"); }catch(e){ ids = []; }
+
+  $("dailyRouteInfo").textContent = ids.length + " patient(s) sauvegardé(s) dans cette tournée type.";
+}
+
+function closeDailyRouteForm(){
+  $("dailyRouteOverlay").style.display = "none";
+}
+
+async function saveDailyRoute(){
+  const name = $("dailyRouteName").value.trim();
+  const ids = selectedIds.slice();
+
+  if(!name){
+    alert("Donne un nom à cette tournée type.");
+    return;
+  }
+
+  if(!ids.length){
+    alert("Aucun patient sélectionné.");
+    return;
+  }
+
+  const payload = {
+    tour_id: currentTourId,
+    route_name: name,
+    selected_patient_ids: ids,
+    updated_at: new Date().toISOString()
+  };
+
+  // Upsert grâce à la contrainte unique (tour_id, route_name)
+  const { error } = await db
+    .from("daily_routes")
+    .upsert(payload, { onConflict: "tour_id,route_name" });
+
+  if(error){
+    alert("Erreur sauvegarde tournée type : " + error.message);
+    return;
+  }
+
+  closeDailyRouteForm();
+  alert("Tournée type sauvegardée.");
+}
+
+async function restoreDailyRoute(){
+  const routeId = $("dailyRouteSelect").value;
+
+  if(!routeId){
+    alert("Choisis une tournée type.");
+    return;
+  }
+
+  const { data, error } = await db
+    .from("daily_routes")
+    .select("*")
+    .eq("id", routeId)
+    .single();
+
+  if(error){
+    alert("Erreur restauration : " + error.message);
+    return;
+  }
+
+  const ids = Array.isArray(data.selected_patient_ids) ? data.selected_patient_ids : [];
+
+  const valid = new Set(patients.map(p => p.id));
+  selectedIds = ids.filter(id => valid.has(id));
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+  closeDailyRouteForm();
+
+  alert("Tournée type restaurée.");
+}
+
+async function deleteDailyRoute(){
+  const routeId = $("dailyRouteSelect").value;
+
+  if(!routeId){
+    alert("Choisis une tournée type.");
+    return;
+  }
+
+  const label = $("dailyRouteSelect").selectedOptions[0]?.textContent || "cette tournée type";
+
+  if(!confirm("Supprimer '" + label + "' ?")){
+    return;
+  }
+
+  const { error } = await db
+    .from("daily_routes")
+    .delete()
+    .eq("id", routeId);
+
+  if(error){
+    alert("Erreur suppression : " + error.message);
+    return;
+  }
+
+  closeDailyRouteForm();
+  alert("Tournée type supprimée.");
+}
+
+
 function showMobileTab(which){
   document.body.classList.remove("mobile-patients", "mobile-route");
   $("tabPatients").classList.remove("active");
@@ -801,7 +1047,7 @@ function showMobileTab(which){
   }
 }
 
-["patientOverlay","tourOverlay","houseOverlay"].forEach(id => {
+["patientOverlay","tourOverlay","houseOverlay","dailyRouteOverlay"].forEach(id => {
   $(id).addEventListener("click", e => {
     if(e.target === e.currentTarget){
       e.currentTarget.style.display = "none";
@@ -814,5 +1060,34 @@ function showMobileTab(which){
   await reloadAll();
 })();
 </script>
+
+<div id="dailyRouteOverlay" class="overlay">
+  <div class="box">
+    <h2 id="dailyRouteTitle">Tournée type</h2>
+
+    <div id="dailySaveBox" class="formContent">
+      <div class="field full">
+        <label>Nom de la tournée type</label>
+        <input id="dailyRouteName" placeholder="Ex : Lundi matin, Mardi soir, Remplacement Valenciennes">
+      </div>
+    </div>
+
+    <div id="dailyRestoreBox" style="padding:16px;display:none">
+      <div class="field full">
+        <label>Choisir une tournée sauvegardée</label>
+        <select id="dailyRouteSelect" style="padding:11px;border:1px solid #cfd8e3;border-radius:10px;width:100%;font-weight:700"></select>
+      </div>
+      <div id="dailyRouteInfo" class="meta" style="margin-top:10px"></div>
+    </div>
+
+    <div class="formButtons">
+      <button class="secondary" onclick="closeDailyRouteForm()">Annuler</button>
+      <button id="dailySaveBtn" class="green" onclick="saveDailyRoute()">Sauvegarder</button>
+      <button id="dailyRestoreBtn" class="green" onclick="restoreDailyRoute()" style="display:none">Restaurer</button>
+      <button id="dailyDeleteBtn" class="danger" onclick="deleteDailyRoute()" style="display:none">Supprimer</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
