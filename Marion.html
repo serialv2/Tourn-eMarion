@@ -8,7 +8,1101 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}
 .header{background:#1769aa;color:white;padding:16px;box-shadow:0 2px 12px #0002}
+.header h1{margin:0;font-size:22px}<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournées infirmières Supabase</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}
+.header{background:#1769aa;color:white;padding:16px}
 .header h1{margin:0;font-size:22px}
+.header p{margin:6px 0 0;font-size:13px;opacity:.9}
+
+.topbar{background:white;border-bottom:1px solid #dce6f1;padding:12px 16px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:20}
+.topbar label{font-weight:800;color:#1769aa}
+.topbar select{flex:1;padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-weight:700;background:#f8fafc}
+button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:#1769aa;color:white}
+button.secondary{background:#667085}
+button.green{background:#188038}
+button.orange{background:#f57c00}
+button.danger{background:#c62828}
+button.light{background:#eef4fb;color:#1769aa}
+
+.mobileTabs{display:none;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:61px;z-index:19}
+.mobileTabs button{flex:1;border-radius:0;background:white;color:#1769aa;border-bottom:3px solid transparent}
+.mobileTabs button.active{background:#eef4fb;border-bottom-color:#1769aa}
+
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}
+.panel h2{font-size:18px;margin:0;padding:14px 16px;background:#eef4fb;border-bottom:1px solid #dce6f1}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid #eee}
+.toolbar input{flex:1;min-width:180px;padding:10px;border:1px solid #ccc;border-radius:10px}
+.moreBox,.importBox{display:none;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa}
+.moreBox.open{display:flex;gap:8px;flex-wrap:wrap}
+.importBox textarea,.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}
+.notice{font-size:12px;color:#667085;padding:0 16px 12px;line-height:1.4}
+.status{font-size:12px;color:#667085;padding:10px 16px;background:#fff;border-bottom:1px solid #eee}
+
+.list{padding:12px;max-height:calc(100vh - 275px);overflow:auto}
+.card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:white;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.card.selected{background:#e8f5e9;border-color:#188038}
+.name{font-weight:800;font-size:15px}
+.addr{font-size:13px;color:#475467;margin-top:4px}
+.meta{font-size:12px;color:#667085;margin-top:4px;white-space:pre-line}
+.cardActions,.routeActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.cardActions button,.routeActions button{padding:8px 9px;font-size:12px}
+
+.routeItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:10px;padding:10px;background:white}
+.rank{width:28px;height:28px;border-radius:50%;background:#1769aa;color:white;display:flex;align-items:center;justify-content:center;font-weight:800}
+.houseBtn{background:#fff7ed!important;color:#c2410c!important}
+.goBtn{background:#188038!important;color:white!important}
+.mapBtn{background:#e8f5e9!important;color:#188038!important}
+.empty{color:#667085;text-align:center;padding:30px 10px}
+
+.segmentBox{padding:12px 16px;border-bottom:1px solid #eee;background:#fff;display:none}
+.segmentTitle{font-weight:800;margin-bottom:8px}
+.segmentButtons{display:flex;gap:8px;flex-wrap:wrap}
+.segmentButtons button{background:#188038}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:none;align-items:center;justify-content:center;padding:16px}
+.box{width:100%;max-width:650px;background:white;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+.box h2,.houseHeader{margin:0;padding:16px 18px;background:#1769aa;color:white;font-size:20px}
+.formContent{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:13px;font-weight:700;color:#344054}
+.field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial}
+.field textarea{min-height:80px;resize:vertical}
+.formButtons{padding:14px 16px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+.houseHeader{display:flex;justify-content:space-between;align-items:center}
+.houseContent{padding:14px 16px}
+.housePhoto{width:100%;min-height:280px;border:0;border-radius:14px;background:#eef4fb;object-fit:cover;display:block}
+.houseButtons{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.houseButtons button{flex:1}
+
+@media(max-width:900px){
+ .topbar{flex-wrap:wrap;padding:10px}
+ .topbar label{width:100%}
+ .topbar select{min-width:100%}
+ .topbar button{flex:1}
+ .mobileTabs{display:flex}
+ body.mobile-patients #routePanel{display:none}
+ body.mobile-route #patientsPanel{display:none}
+ .wrap{grid-template-columns:1fr;padding:10px}
+ .panel{border-radius:12px}
+ .list{max-height:none}
+ .toolbar input{min-width:100%;order:-1}
+ .toolbar button{flex:1;font-size:13px;padding:11px 8px}
+ .card{grid-template-columns:1fr}
+ .cardActions button{flex:1}
+ .routeItem{grid-template-columns:30px 1fr}
+ .routeActions{grid-column:1/-1;justify-content:stretch}
+ .routeActions button{flex:1}
+ .formContent{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<div class="header">
+  <h1>Tournées infirmières</h1>
+  <p>Supabase + sélection des patients + ordre de tournée + Waze / Maps / Maison.</p>
+</div>
+
+<div class="topbar">
+  <label for="tourSelect">Tournée</label>
+  <select id="tourSelect"></select>
+  <button class="green" onclick="openTourForm()">+ Tournée</button>
+  <button class="secondary" onclick="reloadAll()">Recharger</button>
+</div>
+
+<div class="mobileTabs">
+  <button id="tabPatients" class="active" onclick="showMobileTab('patients')">Patients</button>
+  <button id="tabRoute" onclick="showMobileTab('route')">Tournée</button>
+</div>
+
+<div class="wrap">
+  <section id="patientsPanel" class="panel">
+    <h2 id="patientsTitle">Patients</h2>
+    <div class="toolbar">
+      <input id="search" placeholder="Rechercher nom, rue, ville…" oninput="renderPatients()">
+      <button class="green" onclick="openPatientForm()">+ Patient</button>
+      <button class="secondary" onclick="toggleMorePatients()">Options</button>
+    </div>
+    <div id="morePatients" class="moreBox">
+      <button onclick="selectAllVisible()">Ajouter visibles à la tournée</button>
+      <button class="secondary" onclick="clearSelection()">Vider sélection</button>
+      <button class="orange" onclick="toggleImport()">Import texte / JSON</button>
+    </div>
+
+    <div id="importBox" class="importBox">
+      <div class="meta">Import : colle un JSON ancien ou du texte au format Nom;Adresse;Horaire;Note</div>
+      <textarea id="importText" placeholder="Colle ici ton JSON ou tes lignes Nom;Adresse;Horaire;Note"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="green" onclick="importPatients()">Importer dans la tournée sélectionnée</button>
+        <button class="secondary" onclick="toggleImport()">Fermer</button>
+      </div>
+    </div>
+
+    <div id="status" class="status">Chargement...</div>
+    <div class="notice">Coche les patients que tu veux mettre dans la tournée du jour.</div>
+    <div id="patients" class="list"></div>
+  </section>
+
+  <section id="routePanel" class="panel">
+    <h2 id="routeTitle">Tournée</h2>
+    <div class="toolbar">
+      <button class="green" onclick="openGoogleMapsFullOrFirst()">Google Maps</button>
+      <button onclick="openWazeNext()">Waze 1er arrêt</button>
+      <button class="secondary" onclick="toggleMoreRoute()">Options</button>
+    </div>
+    <div id="moreRoute" class="moreBox">
+      <button class="green" onclick="saveVisitOrder()">💾 Enregistrer ordre</button>
+      <button onclick="reloadVisitOrder()">↺ Recharger ordre</button>
+      <button class="danger" onclick="clearSelection()">🗑 Vider tournée</button>
+      <button class="orange" onclick="renderSegments(true)">Fractionner Maps</button>
+      <button class="secondary" onclick="copyRoute()">Copier tournée</button>
+      <button class="green" onclick="openSaveDailyRouteForm()">💾 Sauvegarder tournée type</button>
+      <button onclick="openRestoreDailyRouteForm()">📂 Restaurer tournée type</button>
+    </div>
+    <div class="notice">Le bouton <b>🚗 Aller à</b> ouvre Waze directement vers le patient.</div>
+    <div id="segments" class="segmentBox"></div>
+    <div id="route" class="list"></div>
+    <div style="padding:12px 16px;border-top:1px solid #eee">
+      <textarea id="routeText" class="textarea" readonly></textarea>
+    </div>
+  </section>
+</div>
+
+<div id="patientOverlay" class="overlay">
+  <div class="box">
+    <h2 id="patientFormTitle">Nouveau patient</h2>
+    <div class="formContent">
+      <div class="field"><label>Nom / Prénom *</label><input id="patientName"></div>
+      <div class="field"><label>Téléphone</label><input id="patientPhone"></div>
+      <div class="field full"><label>Adresse complète *</label><input id="patientAddress"></div>
+      <div class="field"><label>Horaires</label><input id="patientTime"></div>
+      <div class="field full"><label>Notes</label><textarea id="patientNotes"></textarea></div>
+    </div>
+    <div class="formButtons">
+      <button class="secondary" onclick="closePatientForm()">Annuler</button>
+      <button class="green" onclick="savePatient()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="tourOverlay" class="overlay">
+  <div class="box">
+    <h2>Nouvelle tournée</h2>
+    <div class="formContent">
+      <div class="field full"><label>Nom</label><input id="newTourName" placeholder="Ex : Saint-Saulve"></div>
+      <div class="field full"><label>Description</label><input id="newTourDescription"></div>
+    </div>
+    <div class="formButtons">
+      <button class="secondary" onclick="closeTourForm()">Annuler</button>
+      <button class="green" onclick="saveTour()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<div id="houseOverlay" class="overlay">
+  <div class="box">
+    <div class="houseHeader">
+      <span id="houseTitle">Maison</span>
+      <button class="secondary" onclick="closeHousePopup()">Fermer</button>
+    </div>
+    <div class="houseContent">
+      <img id="housePhoto" class="housePhoto" alt="Street View">
+      <div id="houseAddress" class="meta" style="margin-top:10px"></div>
+      <div class="houseButtons">
+        <button class="green" onclick="openCurrentHouseMaps()">Maps</button>
+        <button onclick="openCurrentHouseWaze()">Waze</button>
+        <button class="secondary" onclick="closeHousePopup()">Retour</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dailyRouteOverlay" class="overlay">
+  <div class="box">
+    <h2 id="dailyRouteTitle">Tournée type</h2>
+
+    <div id="dailySaveBox" class="formContent">
+      <div class="field full">
+        <label>Nom de la tournée type</label>
+        <input id="dailyRouteName" placeholder="Ex : Lundi matin, Mardi soir, Remplacement Valenciennes">
+      </div>
+    </div>
+
+    <div id="dailyRestoreBox" style="padding:16px;display:none">
+      <div class="field full">
+        <label>Choisir une tournée sauvegardée</label>
+        <select id="dailyRouteSelect" style="padding:11px;border:1px solid #cfd8e3;border-radius:10px;width:100%;font-weight:700"></select>
+      </div>
+      <div id="dailyRouteInfo" class="meta" style="margin-top:10px"></div>
+    </div>
+
+    <div class="formButtons">
+      <button class="secondary" onclick="closeDailyRouteForm()">Annuler</button>
+      <button id="dailySaveBtn" class="green" onclick="saveDailyRoute()">Sauvegarder</button>
+      <button id="dailyRestoreBtn" class="green" onclick="restoreDailyRoute()" style="display:none">Restaurer</button>
+      <button id="dailyDeleteBtn" class="danger" onclick="deleteDailyRoute()" style="display:none">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://iybjtvwdnqnebuexesiz.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5Ymp0dndkbnFuZWJ1ZXhlc2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDEwNjgsImV4cCI6MjA5MTU3NzA2OH0.dAImywya67QbKj1dCR3GZg4p24jxPPvQi5wGkJvdNLk";
+const GOOGLE_STREET_VIEW_API_KEY = "AIzaSyDXeTRU9Ex3nDGMgkH_r4Z8SEFXprnIcns";
+const GOOGLE_MAX_STOPS_PER_SEGMENT = 9;
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let tours = [];
+let patients = [];
+let selectedIds = [];
+let currentTourId = localStorage.getItem("current_tour_id") || "";
+let editingPatientId = null;
+let currentHouseAddress = "";
+
+const $ = id => document.getElementById(id);
+
+function setStatus(msg, isError=false){
+  $("status").textContent = msg;
+  $("status").style.color = isError ? "#c62828" : "#667085";
+}
+
+function norm(s){
+  return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function enc(s){ return encodeURIComponent(s); }
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function selectedKey(){
+  return "selected_patients_" + currentTourId;
+}
+
+function loadSelected(){
+  try {
+    selectedIds = JSON.parse(localStorage.getItem(selectedKey()) || "[]");
+    if(!Array.isArray(selectedIds)) selectedIds = [];
+  } catch(e) {
+    selectedIds = [];
+  }
+
+  const valid = new Set(patients.map(p => p.id));
+  selectedIds = selectedIds.filter(id => valid.has(id));
+}
+
+function saveSelected(){
+  if(currentTourId) localStorage.setItem(selectedKey(), JSON.stringify(selectedIds));
+}
+
+function routePatients(){
+  return selectedIds.map(id => patients.find(p => p.id === id)).filter(Boolean);
+}
+
+async function reloadAll(){
+  await loadTours();
+  await loadPatients();
+}
+
+async function loadTours(){
+  setStatus("Chargement des tournées...");
+  const { data, error } = await db
+    .from("tours")
+    .select("id,name,description,is_active")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if(error){
+    setStatus("Erreur tournées : " + error.message, true);
+    alert("Erreur Supabase tournées : " + error.message);
+    return;
+  }
+
+  tours = data || [];
+
+  if(!tours.length){
+    currentTourId = "";
+    renderTourSelect();
+    setStatus("Aucune tournée. Clique sur + Tournée.");
+    return;
+  }
+
+  if(!currentTourId || !tours.some(t => t.id === currentTourId)){
+    currentTourId = tours[0].id;
+    localStorage.setItem("current_tour_id", currentTourId);
+  }
+
+  renderTourSelect();
+}
+
+function renderTourSelect(){
+  const sel = $("tourSelect");
+  sel.innerHTML = "";
+
+  tours.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name;
+    if(t.id === currentTourId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  sel.onchange = async () => {
+    currentTourId = sel.value;
+    localStorage.setItem("current_tour_id", currentTourId);
+    selectedIds = [];
+    await loadPatients();
+  };
+}
+
+async function loadPatients(){
+  if(!currentTourId){
+    patients = [];
+    selectedIds = [];
+    renderPatients();
+    renderRoute();
+    return;
+  }
+
+  const tour = tours.find(t => t.id === currentTourId);
+  $("patientsTitle").textContent = "Patients - " + (tour ? tour.name : "");
+  $("routeTitle").textContent = "Tournée - " + (tour ? tour.name : "");
+
+  setStatus("Chargement des patients...");
+  const { data, error } = await db
+    .from("patients")
+    .select("*")
+    .eq("tour_id", currentTourId)
+    .eq("is_active", true)
+    .order("visit_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if(error){
+    setStatus("Erreur patients : " + error.message, true);
+    alert("Erreur Supabase patients : " + error.message);
+    return;
+  }
+
+  patients = data || [];
+  loadSelected();
+
+  setStatus(patients.length + " patient(s) chargé(s). " + selectedIds.length + " sélectionné(s).");
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function renderPatients(){
+  const q = norm($("search").value || "");
+  const box = $("patients");
+  box.innerHTML = "";
+
+  const filtered = patients.filter(p => norm(p.name + " " + p.address + " " + (p.notes || "")).includes(q));
+
+  if(!filtered.length){
+    box.innerHTML = '<div class="empty">Aucun patient dans cette tournée.</div>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const checked = selectedIds.includes(p.id);
+    const div = document.createElement("div");
+    div.className = "card" + (checked ? " selected" : "");
+    div.innerHTML = `
+      <div>
+        <label style="display:flex;gap:8px;cursor:pointer;align-items:flex-start">
+          <input type="checkbox" ${checked ? "checked" : ""} onchange="togglePatient('${p.id}')">
+          <div>
+            <div class="name">${escapeHtml(p.name)}</div>
+            <div class="addr">${escapeHtml(p.address)}</div>
+            <div class="meta">${escapeHtml(p.time_info || "")}${p.phone ? " — Tél : " + escapeHtml(p.phone) : ""}${p.notes ? " — " + escapeHtml(p.notes) : ""}</div>
+          </div>
+        </label>
+      </div>
+      <div class="cardActions">
+        <button onclick="editPatient('${p.id}')">Modifier</button>
+        <button class="danger" onclick="deletePatient('${p.id}')">Supprimer</button>
+      </div>`;
+    box.appendChild(div);
+  });
+}
+
+function togglePatient(id){
+  const pos = selectedIds.indexOf(id);
+  if(pos >= 0) selectedIds.splice(pos, 1);
+  else selectedIds.push(id);
+
+  saveSelected();
+  setStatus(patients.length + " patient(s) chargé(s). " + selectedIds.length + " sélectionné(s).");
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function selectAllVisible(){
+  const q = norm($("search").value || "");
+  patients.forEach(p => {
+    if(norm(p.name + " " + p.address + " " + (p.notes || "")).includes(q) && !selectedIds.includes(p.id)){
+      selectedIds.push(p.id);
+    }
+  });
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function clearSelection(){
+  selectedIds = [];
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function renderRoute(){
+  const box = $("route");
+  const r = routePatients();
+  box.innerHTML = "";
+
+  if(!r.length){
+    box.innerHTML = '<div class="empty">Aucun patient sélectionné. Coche les patients à gauche.</div>';
+    $("routeText").value = "";
+    return;
+  }
+
+  r.forEach((p, pos) => {
+    const div = document.createElement("div");
+    div.className = "routeItem";
+    div.innerHTML = `
+      <div class="rank">${pos + 1}</div>
+      <div>
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="addr">${escapeHtml(p.address)}</div>
+        <div class="meta">${escapeHtml(p.time_info || "")}${p.notes ? " — " + escapeHtml(p.notes) : ""}</div>
+      </div>
+      <div class="routeActions">
+        <button class="houseBtn" onclick="viewHouse('${p.id}')">🏠 Maison</button>
+        <button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller à</button>
+        <button class="mapBtn" onclick="openPatientMap('${p.id}')">📍 Maps</button>
+        <button class="light" onclick="moveSelected(${pos}, -1)">↑</button>
+        <button class="light" onclick="moveSelected(${pos}, 1)">↓</button>
+        <button class="danger" onclick="removeSelected(${pos})">✕</button>
+      </div>`;
+    box.appendChild(div);
+  });
+
+  $("routeText").value = r.map((p,i) => `${i+1}. ${p.name} — ${p.address}`).join("\n");
+}
+
+async function moveSelected(pos, dir){
+  const n = pos + dir;
+  if(n < 0 || n >= selectedIds.length) return;
+
+  [selectedIds[pos], selectedIds[n]] = [selectedIds[n], selectedIds[pos]];
+  saveSelected();
+  renderRoute();
+  renderPatients();
+  renderSegments(false);
+
+  // Sauvegarde l'ordre sélectionné dans Supabase aussi.
+  for(let i=0; i<selectedIds.length; i++){
+    await db.from("patients").update({ visit_order: i + 1 }).eq("id", selectedIds[i]);
+  }
+}
+
+function removeSelected(pos){
+  selectedIds.splice(pos, 1);
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function getPatient(id){ return patients.find(p => p.id === id); }
+
+function openPatientForm(){
+  editingPatientId = null;
+  $("patientFormTitle").textContent = "Nouveau patient";
+  $("patientName").value = "";
+  $("patientPhone").value = "";
+  $("patientAddress").value = "";
+  $("patientTime").value = "";
+  $("patientNotes").value = "";
+  $("patientOverlay").style.display = "flex";
+}
+
+function editPatient(id){
+  const p = getPatient(id);
+  if(!p) return;
+
+  editingPatientId = id;
+  $("patientFormTitle").textContent = "Modifier patient";
+  $("patientName").value = p.name || "";
+  $("patientPhone").value = p.phone || "";
+  $("patientAddress").value = p.address || "";
+  $("patientTime").value = p.time_info || "";
+  $("patientNotes").value = p.notes || "";
+  $("patientOverlay").style.display = "flex";
+}
+
+function closePatientForm(){ $("patientOverlay").style.display = "none"; }
+
+async function savePatient(){
+  if(!currentTourId){
+    alert("Crée ou sélectionne une tournée d'abord.");
+    return;
+  }
+
+  const payload = {
+    name: $("patientName").value.trim(),
+    phone: $("patientPhone").value.trim(),
+    address: $("patientAddress").value.trim(),
+    time_info: $("patientTime").value.trim(),
+    notes: $("patientNotes").value.trim()
+  };
+
+  if(!payload.name){ alert("Le nom est obligatoire."); return; }
+  if(!payload.address){ alert("L'adresse est obligatoire."); return; }
+
+  if(editingPatientId){
+    const { error } = await db.from("patients").update(payload).eq("id", editingPatientId);
+    if(error){ alert("Erreur modification : " + error.message); return; }
+  }else{
+    payload.tour_id = currentTourId;
+    payload.visit_order = patients.length + 1;
+    payload.is_active = true;
+    const { error } = await db.from("patients").insert(payload);
+    if(error){ alert("Erreur création : " + error.message); return; }
+  }
+
+  closePatientForm();
+  await loadPatients();
+}
+
+async function deletePatient(id){
+  const p = getPatient(id);
+  if(!p || !confirm("Supprimer " + p.name + " ?")) return;
+
+  const { error } = await db.from("patients").update({ is_active:false }).eq("id", id);
+  if(error){ alert("Erreur suppression : " + error.message); return; }
+
+  selectedIds = selectedIds.filter(x => x !== id);
+  saveSelected();
+  await loadPatients();
+}
+
+function openTourForm(){
+  $("newTourName").value = "";
+  $("newTourDescription").value = "";
+  $("tourOverlay").style.display = "flex";
+}
+
+function closeTourForm(){ $("tourOverlay").style.display = "none"; }
+
+async function saveTour(){
+  const name = $("newTourName").value.trim();
+  const description = $("newTourDescription").value.trim();
+
+  if(!name){ alert("Le nom est obligatoire."); return; }
+
+  const { data, error } = await db.from("tours").insert({
+    name,
+    description,
+    is_active: true
+  }).select().single();
+
+  if(error){ alert("Erreur création tournée : " + error.message); return; }
+
+  currentTourId = data.id;
+  localStorage.setItem("current_tour_id", currentTourId);
+  closeTourForm();
+  await reloadAll();
+}
+
+function toggleMorePatients(){ $("morePatients").classList.toggle("open"); }
+function toggleMoreRoute(){ $("moreRoute").classList.toggle("open"); }
+function toggleImport(){
+  $("importBox").style.display = $("importBox").style.display === "block" ? "none" : "block";
+}
+
+async function importPatients(){
+  if(!currentTourId){ alert("Sélectionne une tournée."); return; }
+
+  const text = $("importText").value.trim();
+  if(!text){ alert("Colle un JSON ou du texte."); return; }
+
+  let rows = [];
+
+  try {
+    const data = JSON.parse(text);
+    let source = [];
+
+    if(data && Array.isArray(data.patients)){
+      if(Array.isArray(data.selected) && data.selected.length){
+        data.selected.forEach(i => {
+          if(Number.isInteger(i) && data.patients[i]) source.push(data.patients[i]);
+        });
+        data.patients.forEach((p, i) => {
+          if(!data.selected.includes(i)) source.push(p);
+        });
+      } else {
+        source = data.patients;
+      }
+    } else if(Array.isArray(data)){
+      source = data;
+    }
+
+    rows = source.map((p, idx) => ({
+      tour_id: currentTourId,
+      name: String(p.name || "").trim(),
+      address: String(p.address || "").trim(),
+      phone: String(p.phone || "").trim(),
+      time_info: String(p.time || p.time_info || "").trim(),
+      notes: String(p.note || p.notes || "").trim(),
+      visit_order: idx + 1,
+      is_active: true
+    })).filter(p => p.name && p.address);
+  } catch(e) {}
+
+  if(!rows.length){
+    text.split(/\r?\n/).map(x => x.trim()).filter(Boolean).forEach((line, idx) => {
+      const p = line.split(";").map(x => x.trim());
+      if(p[0] && p[1]){
+        rows.push({
+          tour_id: currentTourId,
+          name: p[0],
+          address: p[1],
+          time_info: p[2] || "",
+          notes: p[3] || "",
+          visit_order: patients.length + idx + 1,
+          is_active: true
+        });
+      }
+    });
+  }
+
+  if(!rows.length){ alert("Aucun patient valide trouvé."); return; }
+
+  if(!confirm("Importer " + rows.length + " patient(s) dans cette tournée ?")) return;
+
+  const { data: inserted, error } = await db.from("patients").insert(rows).select();
+  if(error){ alert("Erreur import : " + error.message); return; }
+
+  $("importText").value = "";
+  await loadPatients();
+
+  // Coche automatiquement les patients importés.
+  if(Array.isArray(inserted)){
+    selectedIds = inserted.map(p => p.id);
+    saveSelected();
+    renderPatients();
+    renderRoute();
+  }
+
+  alert(rows.length + " patient(s) importé(s).");
+}
+
+function getRouteAddresses(){
+  return routePatients().filter(p => p.address).map(p => ({ name:p.name, address:p.address }));
+}
+
+function buildMapsUrl(stops, origin){
+  if(!stops.length) return "";
+  let url = "https://www.google.com/maps/dir/?api=1&travelmode=driving";
+  if(origin) url += "&origin=Maing, France";
+  if(stops.length === 1) return url + "&destination=" + enc(stops[0].address);
+  url += "&destination=" + enc(stops[stops.length - 1].address);
+  const waypoints = stops.slice(0, -1).map(s => s.address).join("|");
+  if(waypoints) url += "&waypoints=" + enc(waypoints);
+  return url;
+}
+
+function segments(stops){
+  const res = [];
+  for(let i=0; i<stops.length; i+=GOOGLE_MAX_STOPS_PER_SEGMENT){
+    res.push(stops.slice(i, i + GOOGLE_MAX_STOPS_PER_SEGMENT));
+  }
+  return res;
+}
+
+function renderSegments(showAlert){
+  const box = $("segments");
+  const stops = getRouteAddresses();
+
+  if(!stops.length){
+    box.style.display = "none";
+    box.innerHTML = "";
+    if(showAlert) alert("Aucun patient sélectionné.");
+    return;
+  }
+
+  const segs = segments(stops);
+  box.style.display = "block";
+  let h = '<div class="segmentTitle">Itinéraires Google Maps fractionnés</div><div class="segmentButtons">';
+  segs.forEach((seg, idx) => {
+    const s = idx * GOOGLE_MAX_STOPS_PER_SEGMENT + 1;
+    const e = s + seg.length - 1;
+    h += `<button onclick="openGoogleSegment(${idx})">Segment ${idx+1} : ${s} à ${e}</button>`;
+  });
+  h += "</div>";
+  box.innerHTML = h;
+}
+
+function openGoogleSegment(i){
+  const seg = segments(getRouteAddresses())[i];
+  if(seg) window.open(buildMapsUrl(seg, i === 0), "_blank");
+}
+
+function openGoogleMapsFullOrFirst(){
+  const stops = getRouteAddresses();
+  if(!stops.length){ alert("Aucun patient sélectionné."); return; }
+
+  if(stops.length > GOOGLE_MAX_STOPS_PER_SEGMENT){
+    renderSegments(true);
+    alert("Plus de 9 arrêts : segments créés.");
+    return;
+  }
+
+  window.open(buildMapsUrl(stops, true), "_blank");
+}
+
+function openWazeNext(){
+  const r = routePatients();
+  if(!r.length){ alert("Aucun patient sélectionné."); return; }
+  goToPatient(r[0].id);
+}
+
+function goToPatient(id){
+  const p = getPatient(id);
+  if(!p || !p.address){ alert("Adresse manquante."); return; }
+  window.open("https://waze.com/ul?q=" + enc(p.address) + "&navigate=yes", "_blank");
+}
+
+function openPatientMap(id){
+  const p = getPatient(id);
+  if(!p || !p.address){ alert("Adresse manquante."); return; }
+  window.open("https://www.google.com/maps/search/?api=1&query=" + enc(p.address), "_blank");
+}
+
+function viewHouse(id){
+  const p = getPatient(id);
+  if(!p || !p.address){ alert("Adresse manquante."); return; }
+
+  currentHouseAddress = p.address;
+  $("houseTitle").textContent = "🏠 " + p.name;
+  $("houseAddress").textContent = p.address;
+  $("houseOverlay").style.display = "flex";
+  $("housePhoto").src =
+    "https://maps.googleapis.com/maps/api/streetview?size=900x520&fov=80&pitch=0&location=" +
+    enc(p.address) +
+    "&key=" +
+    enc(GOOGLE_STREET_VIEW_API_KEY);
+}
+
+function closeHousePopup(){ $("houseOverlay").style.display = "none"; }
+function openCurrentHouseMaps(){ if(currentHouseAddress) window.open("https://www.google.com/maps/search/?api=1&query=" + enc(currentHouseAddress), "_blank"); }
+function openCurrentHouseWaze(){ if(currentHouseAddress) window.open("https://waze.com/ul?q=" + enc(currentHouseAddress) + "&navigate=yes", "_blank"); }
+
+async function copyRoute(){
+  const t = routePatients().map((p,i) => `${i+1}. ${p.name} — ${p.address}`).join("\n");
+  $("routeText").value = t;
+  try{ await navigator.clipboard.writeText(t); alert("Tournée copiée."); }catch(e){ alert("Copie impossible."); }
+}
+
+
+async function saveVisitOrder(){
+  const r = routePatients();
+
+  if(!r.length){
+    alert("Aucun patient sélectionné dans la tournée.");
+    return;
+  }
+
+  for(let i = 0; i < r.length; i++){
+    const { error } = await db
+      .from("patients")
+      .update({ visit_order: i + 1 })
+      .eq("id", r[i].id);
+
+    if(error){
+      alert("Erreur enregistrement ordre : " + error.message);
+      return;
+    }
+  }
+
+  await loadPatients();
+
+  // On remet la sélection dans le même ordre après rechargement.
+  selectedIds = r.map(p => p.id);
+  saveSelected();
+  renderPatients();
+  renderRoute();
+
+  alert("Ordre de tournée enregistré dans Supabase.");
+}
+
+async function reloadVisitOrder(){
+  if(!currentTourId){
+    alert("Sélectionne une tournée.");
+    return;
+  }
+
+  await loadPatients();
+
+  selectedIds = patients
+    .slice()
+    .sort((a,b) => (a.visit_order || 0) - (b.visit_order || 0))
+    .map(p => p.id);
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+
+  alert("Ordre rechargé depuis Supabase.");
+}
+
+async function loadDailyRoutes(){
+  if(!currentTourId) return [];
+
+  const { data, error } = await db
+    .from("daily_routes")
+    .select("*")
+    .eq("tour_id", currentTourId)
+    .order("route_name", { ascending: true });
+
+  if(error){
+    alert("Erreur chargement tournées types : " + error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+function openSaveDailyRouteForm(){
+  const r = routePatients();
+
+  if(!r.length){
+    alert("Coche d'abord les patients de la tournée à sauvegarder.");
+    return;
+  }
+
+  $("dailyRouteTitle").textContent = "💾 Sauvegarder tournée type";
+  $("dailySaveBox").style.display = "grid";
+  $("dailyRestoreBox").style.display = "none";
+  $("dailySaveBtn").style.display = "inline-block";
+  $("dailyRestoreBtn").style.display = "none";
+  $("dailyDeleteBtn").style.display = "none";
+  $("dailyRouteName").value = "";
+  $("dailyRouteOverlay").style.display = "flex";
+}
+
+async function openRestoreDailyRouteForm(){
+  const routes = await loadDailyRoutes();
+
+  $("dailyRouteTitle").textContent = "📂 Restaurer tournée type";
+  $("dailySaveBox").style.display = "none";
+  $("dailyRestoreBox").style.display = "block";
+  $("dailySaveBtn").style.display = "none";
+  $("dailyRestoreBtn").style.display = "inline-block";
+  $("dailyDeleteBtn").style.display = "inline-block";
+
+  const select = $("dailyRouteSelect");
+  select.innerHTML = "";
+
+  if(!routes.length){
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Aucune tournée type sauvegardée";
+    select.appendChild(opt);
+    $("dailyRouteInfo").textContent = "";
+    $("dailyRestoreBtn").disabled = true;
+    $("dailyDeleteBtn").disabled = true;
+  }else{
+    routes.forEach(route => {
+      const opt = document.createElement("option");
+      opt.value = route.id;
+      opt.textContent = route.route_name;
+      opt.dataset.ids = JSON.stringify(route.selected_patient_ids || []);
+      select.appendChild(opt);
+    });
+
+    $("dailyRestoreBtn").disabled = false;
+    $("dailyDeleteBtn").disabled = false;
+    updateDailyRouteInfo();
+  }
+
+  select.onchange = updateDailyRouteInfo;
+  $("dailyRouteOverlay").style.display = "flex";
+}
+
+function updateDailyRouteInfo(){
+  const opt = $("dailyRouteSelect").selectedOptions[0];
+  if(!opt || !opt.value){
+    $("dailyRouteInfo").textContent = "";
+    return;
+  }
+
+  let ids = [];
+  try{ ids = JSON.parse(opt.dataset.ids || "[]"); }catch(e){ ids = []; }
+
+  $("dailyRouteInfo").textContent = ids.length + " patient(s) sauvegardé(s) dans cette tournée type.";
+}
+
+function closeDailyRouteForm(){
+  $("dailyRouteOverlay").style.display = "none";
+}
+
+async function saveDailyRoute(){
+  const name = $("dailyRouteName").value.trim();
+  const ids = selectedIds.slice();
+
+  if(!name){
+    alert("Donne un nom à cette tournée type.");
+    return;
+  }
+
+  if(!ids.length){
+    alert("Aucun patient sélectionné.");
+    return;
+  }
+
+  const payload = {
+    tour_id: currentTourId,
+    route_name: name,
+    selected_patient_ids: ids,
+    updated_at: new Date().toISOString()
+  };
+
+  // Upsert grâce à la contrainte unique (tour_id, route_name)
+  const { error } = await db
+    .from("daily_routes")
+    .upsert(payload, { onConflict: "tour_id,route_name" });
+
+  if(error){
+    alert("Erreur sauvegarde tournée type : " + error.message);
+    return;
+  }
+
+  closeDailyRouteForm();
+  alert("Tournée type sauvegardée.");
+}
+
+async function restoreDailyRoute(){
+  const routeId = $("dailyRouteSelect").value;
+
+  if(!routeId){
+    alert("Choisis une tournée type.");
+    return;
+  }
+
+  const { data, error } = await db
+    .from("daily_routes")
+    .select("*")
+    .eq("id", routeId)
+    .single();
+
+  if(error){
+    alert("Erreur restauration : " + error.message);
+    return;
+  }
+
+  const ids = Array.isArray(data.selected_patient_ids) ? data.selected_patient_ids : [];
+
+  const valid = new Set(patients.map(p => p.id));
+  selectedIds = ids.filter(id => valid.has(id));
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+  closeDailyRouteForm();
+
+  alert("Tournée type restaurée.");
+}
+
+async function deleteDailyRoute(){
+  const routeId = $("dailyRouteSelect").value;
+
+  if(!routeId){
+    alert("Choisis une tournée type.");
+    return;
+  }
+
+  const label = $("dailyRouteSelect").selectedOptions[0]?.textContent || "cette tournée type";
+
+  if(!confirm("Supprimer '" + label + "' ?")){
+    return;
+  }
+
+  const { error } = await db
+    .from("daily_routes")
+    .delete()
+    .eq("id", routeId);
+
+  if(error){
+    alert("Erreur suppression : " + error.message);
+    return;
+  }
+
+  closeDailyRouteForm();
+  alert("Tournée type supprimée.");
+}
+
+
+function showMobileTab(which){
+  document.body.classList.remove("mobile-patients", "mobile-route");
+  $("tabPatients").classList.remove("active");
+  $("tabRoute").classList.remove("active");
+
+  if(which === "route"){
+    document.body.classList.add("mobile-route");
+    $("tabRoute").classList.add("active");
+  } else {
+    document.body.classList.add("mobile-patients");
+    $("tabPatients").classList.add("active");
+  }
+}
+
+["patientOverlay","tourOverlay","houseOverlay","dailyRouteOverlay"].forEach(id => {
+  const el = $(id);
+  if(!el) return;
+  el.addEventListener("click", e => {
+    if(e.target === e.currentTarget){
+      e.currentTarget.style.display = "none";
+    }
+  });
+});
+
+(async function(){
+  if(window.innerWidth <= 900) showMobileTab("patients");
+  await reloadAll();
+})();
+</script>
+
+</body>
+</html>
 .header p{margin:6px 0 0;font-size:13px;opacity:.9}
 .tourTabs,.mobileTabs{display:flex;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:0;z-index:20}
 .tourTabs button,.mobileTabs button{flex:1;border-radius:0;background:white;color:#1769aa;padding:13px 8px;border:0;border-bottom:3px solid transparent}
