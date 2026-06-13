@@ -429,6 +429,7 @@ function renderPatients(){
         </label>
       </div>
       <div class="cardActions">
+        <button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller</button>
         <button onclick="editPatient('${p.id}')">Modifier</button>
         <button class="danger" onclick="deletePatient('${p.id}')">Supprimer</button>
       </div>`;
