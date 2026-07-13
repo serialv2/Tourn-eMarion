@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendrier des tournées infirmières</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --blue:#1769aa;
+  --blue-light:#eef4fb;
+  --green:#188038;
+  --green-light:#e8f5e9;
+  --red:#c62828;
+  --red-light:#ffebee;
+  --orange:#f57c00;
+  --gray:#667085;
+  --border:#dce6f1;
+  --bg:#f4f6fb;
+}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#202124}
+button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:var(--blue);color:white}
+button.secondary{background:var(--gray)}
+button.green{background:var(--green)}
+button.orange{background:var(--orange)}
+button.danger{background:var(--red)}
+button.light{background:var(--blue-light);color:var(--blue)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.header{background:var(--blue);color:white;padding:16px}
+.headerRow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header h1{margin:0;font-size:22px}
+.header p{margin:6px 0 0;font-size:13px;opacity:.9}
+.page{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}
+.calendarTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:white;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.calendarTop h2{margin:0;font-size:20px;text-transform:capitalize}
+.calendarNav{display:flex;gap:8px;flex-wrap:wrap}
+.weekdays,.calendarGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.weekdays{background:var(--blue-light);border-bottom:1px solid var(--border)}
+.weekdays div{padding:10px 4px;text-align:center;font-size:12px;font-weight:800;color:var(--blue)}
+.calendarGrid{background:var(--border);gap:1px}
+.day{position:relative;min-height:118px;background:white;padding:8px;cursor:pointer;overflow:hidden}
+.day:hover{outline:3px solid #90caf9;z-index:1}
+.day.outside{background:#f8fafc;color:#98a2b3}
+.day.today{box-shadow:inset 0 0 0 3px var(--blue)}
+.day.selected{box-shadow:inset 0 0 0 3px var(--orange)}
+.day.has-work.unpaid.past{background:var(--red-light)}
+.day.has-work.paid{background:var(--green-light)}
+.day.has-work.future-unpaid{background:#eaf3ff}
+.dayNumber{font-weight:800;font-size:14px}
+.dayBadge{display:block;margin-top:6px;padding:5px 6px;border-radius:7px;background:#fff;border:1px solid #d0d5dd;font-size:11px;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.dayBadge strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dayBadge.paid{border-color:#81c784}
+.dayBadge.unpaid{border-color:#ef9a9a}
+.dayTotal{margin-top:5px;font-size:11px;font-weight:800}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--border);font-size:12px;color:#475467}
+.legendItem{display:flex;align-items:center;gap:6px}
+.dot{width:14px;height:14px;border-radius:4px;border:1px solid #bbb}
+.dot.paid{background:var(--green-light)}
+.dot.unpaid{background:var(--red-light)}
+.dot.future{background:#eaf3ff}
+.sidebar{display:flex;flex-direction:column;gap:16px}
+.sideSection{padding:16px}
+.sideSection h2,.sideSection h3{margin:0 0 12px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;font-weight:800;color:#344054}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px;border:1px solid #cfd8e3;border-radius:10px;font:inherit;background:white
+}
+.field textarea{min-height:95px;resize:vertical}
+.checkRow{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #cfd8e3;border-radius:10px;margin-bottom:12px}
+.checkRow input{width:20px;height:20px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{flex:1}
+.status{padding:10px 12px;border-radius:10px;background:#f8fafc;color:var(--gray);font-size:12px;margin-bottom:12px}
+.status.error{background:var(--red-light);color:var(--red)}
+.summaryGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.summaryCard{padding:12px;border:1px solid var(--border);border-radius:12px;background:#fafcff}
+.summaryCard span{display:block;font-size:12px;color:var(--gray)}
+.summaryCard strong{display:block;margin-top:4px;font-size:18px}
+.summaryCard.full{grid-column:1/-1}
+.selectedDate{font-weight:800;color:var(--blue);margin-bottom:12px}
+.small{font-size:12px;color:var(--gray);line-height:1.4}
+.entryList{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.entryItem{padding:9px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.entryItem.active{border-color:var(--orange);background:#fff8e1}
+.entryItemTitle{font-weight:800}
+.entryItemMeta{font-size:12px;color:var(--gray);margin-top:3px}
+.empty{text-align:center;color:var(--gray);padding:18px 8px}
+@media(max-width:950px){
+  .page{grid-template-columns:1fr}
+  .sidebar{grid-row:1}
+  .day{min-height:95px;padding:6px}
+  .dayBadge{font-size:10px}
+}
+@media(max-width:600px){
+  .page{padding:8px;gap:8px}
+  .panel{border-radius:12px}
+  .header{padding:12px}
+  .calendarTop{padding:10px}
+  .calendarTop h2{font-size:17px;width:100%;text-align:center}
+  .calendarNav{width:100%}
+  .calendarNav button{flex:1;padding:9px 5px}
+  .weekdays div{font-size:10px;padding:8px 1px}
+  .day{min-height:76px;padding:4px}
+  .dayNumber{font-size:12px}
+  .dayBadge{padding:3px;font-size:9px;margin-top:3px}
+  .dayBadge strong{display:none}
+  .dayTotal{font-size:9px}
+}
+</style>
+</head>
+
+<body>
+<header class="header">
+  <div class="headerRow">
+    <div>
+      <h1>Calendrier des tournées</h1>
+      <p>Jours travaillés, chiffre d’affaires et suivi des paiements.</p>
+    </div>
+    <button class="secondary" onclick="window.location.href='index.html'">← Retour aux tournées</button>
+  </div>
+</header>
+
+<main class="page">
+  <section class="panel">
+    <div class="calendarTop">
+      <div class="calendarNav">
+        <button class="light" onclick="changeMonth(-1)">← Mois précédent</button>
+        <button class="light" onclick="goToday()">Aujourd’hui</button>
+        <button class="light" onclick="changeMonth(1)">Mois suivant →</button>
+      </div>
+      <h2 id="monthTitle"></h2>
+    </div>
+
+    <div class="weekdays">
+      <div>Lun.</div><div>Mar.</div><div>Mer.</div><div>Jeu.</div>
+      <div>Ven.</div><div>Sam.</div><div>Dim.</div>
+    </div>
+    <div id="calendarGrid" class="calendarGrid"></div>
+
+    <div class="legend">
+      <div class="legendItem"><span class="dot paid"></span> Travaillée et payée</div>
+      <div class="legendItem"><span class="dot unpaid"></span> Passée et non payée</div>
+      <div class="legendItem"><span class="dot future"></span> Prévue / non payée</div>
+    </div>
+  </section>
+
+  <aside class="sidebar">
+    <section class="panel sideSection">
+      <h2>Saisie d’une journée</h2>
+      <div id="status" class="status">Chargement…</div>
+
+      <div class="field">
+        <label for="tourSelect">Tournée travaillée</label>
+        <select id="tourSelect"></select>
+      </div>
+
+      <div id="selectedDateLabel" class="selectedDate">Clique sur un jour du calendrier.</div>
+
+      <div class="field">
+        <label for="revenue">Chiffre d’affaires (€)</label>
+        <input id="revenue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ex : 320,82">
+      </div>
+
+      <label class="checkRow">
+        <input id="isPaid" type="checkbox">
+        <span><strong>Journée payée</strong><br><span class="small">Décoche si le règlement est encore attendu.</span></span>
+      </label>
+
+      <div class="field">
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Remplacement, matin/soir, remarques…"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" class="green" onclick="saveWorkDay()" disabled>Enregistrer</button>
+        <button id="newBtn" class="light" onclick="newEntry()" disabled>Nouvelle ligne</button>
+        <button id="deleteBtn" class="danger" onclick="deleteWorkDay()" disabled>Supprimer</button>
+      </div>
+
+      <div id="dayEntries" class="entryList"></div>
+    </section>
+
+    <section class="panel sideSection">
+      <h3>Résumé du mois</h3>
+      <div class="summaryGrid">
+        <div class="summaryCard">
+          <span>Jours travaillés</span>
+          <strong id="sumDays">0</strong>
+        </div>
+        <div class="summaryCard">
+          <span>Enregistrements</span>
+          <strong id="sumEntries">0</strong>
+        </div>
+        <div class="summaryCard">
+          <span>Chiffre d’affaires</span>
+          <strong id="sumRevenue">0,00 €</strong>
+        </div>
+        <div class="summaryCard">
+          <span>Déjà payé</span>
+          <strong id="sumPaid">0,00 €</strong>
+        </div>
+        <div class="summaryCard full">
+          <span>Reste à payer</span>
+          <strong id="sumUnpaid">0,00 €</strong>
+        </div>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<script>
+const SUPABASE_URL = "https://iybjtvwdnqnebuexesiz.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5Ymp0dndkbnFuZWJ1ZXhlc2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDEwNjgsImV4cCI6MjA5MTU3NzA2OH0.dAImywya67QbKj1dCR3GZg4p24jxPPvQi5wGkJvdNLk";
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+
+let tours = [];
+let workDays = [];
+let viewDate = new Date();
+viewDate.setDate(1);
+let selectedDate = "";
+let editingId = null;
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function isoLocal(date){
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+function parseIsoDate(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return new Date(y,m-1,d);
+}
+function todayIso(){ return isoLocal(new Date()); }
+function money(value){
+  return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(Number(value || 0));
+}
+function setStatus(message, error=false){
+  $("status").textContent = message;
+  $("status").className = "status" + (error ? " error" : "");
+}
+function selectedTourId(){ return $("tourSelect").value || ""; }
+function tourName(id){ return tours.find(t => t.id === id)?.name || "Tournée"; }
+
+async function init(){
+  await loadTours();
+  await loadMonth();
+  selectDate(todayIso());
+}
+
+async function loadTours(){
+  const { data, error } = await db
+    .from("tours")
+    .select("id,name,is_active")
+    .eq("is_active", true)
+    .order("name", {ascending:true});
+
+  if(error){
+    setStatus("Erreur chargement des tournées : " + error.message, true);
+    return;
+  }
+
+  tours = data || [];
+  const select = $("tourSelect");
+  select.innerHTML = "";
+
+  tours.forEach(t => {
+    const option = document.createElement("option");
+    option.value = t.id;
+    option.textContent = t.name;
+    select.appendChild(option);
+  });
+
+  const remembered = localStorage.getItem("current_tour_id");
+  if(remembered && tours.some(t => t.id === remembered)){
+    select.value = remembered;
+  }
+
+  select.onchange = () => {
+    localStorage.setItem("current_tour_id", select.value);
+    editingId = null;
+    fillEditorForSelectedTour();
+  };
+
+  if(!tours.length){
+    setStatus("Aucune tournée active trouvée.", true);
+  }
+}
+
+function monthBounds(){
+  const start = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+  const end = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1);
+  return {start:isoLocal(start), end:isoLocal(end)};
+}
+
+async function loadMonth(){
+  const {start,end} = monthBounds();
+  setStatus("Chargement du mois…");
+
+  const { data, error } = await db
+    .from("work_days")
+    .select("id,work_date,tour_id,revenue,is_paid,notes,created_at,updated_at")
+    .gte("work_date", start)
+    .lt("work_date", end)
+    .order("work_date", {ascending:true})
+    .order("created_at", {ascending:true});
+
+  if(error){
+    workDays = [];
+    renderCalendar();
+    updateSummary();
+    setStatus("Erreur Supabase : " + error.message, true);
+    return;
+  }
+
+  workDays = data || [];
+  renderCalendar();
+  updateSummary();
+  setStatus(workDays.length + " enregistrement(s) chargé(s).");
+}
+
+function changeMonth(delta){
+  viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+delta, 1);
+  selectedDate = "";
+  editingId = null;
+  clearEditor();
+  loadMonth();
+}
+
+function goToday(){
+  const now = new Date();
+  viewDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  loadMonth().then(() => selectDate(todayIso()));
+}
+
+function renderCalendar(){
+  const title = new Intl.DateTimeFormat("fr-FR",{month:"long",year:"numeric"}).format(viewDate);
+  $("monthTitle").textContent = title;
+
+  const grid = $("calendarGrid");
+  grid.innerHTML = "";
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const first = new Date(year,month,1);
+  const mondayOffset = (first.getDay()+6)%7;
+  const start = new Date(year,month,1-mondayOffset);
+
+  for(let i=0;i<42;i++){
+    const date = new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
+    const iso = isoLocal(date);
+    const entries = workDays.filter(x => x.work_date === iso);
+    const isOutside = date.getMonth() !== month;
+    const isPast = iso < todayIso();
+    const hasPaid = entries.some(x => x.is_paid);
+    const hasUnpaid = entries.some(x => !x.is_paid);
+    const total = entries.reduce((s,x)=>s+Number(x.revenue||0),0);
+
+    const day = document.createElement("div");
+    let classes = ["day"];
+    if(isOutside) classes.push("outside");
+    if(iso === todayIso()) classes.push("today");
+    if(iso === selectedDate) classes.push("selected");
+    if(entries.length) classes.push("has-work");
+    if(entries.length && entries.every(x=>x.is_paid)) classes.push("paid");
+    else if(entries.length && hasUnpaid && isPast) classes.push("unpaid","past");
+    else if(entries.length && hasUnpaid) classes.push("future-unpaid");
+    day.className = classes.join(" ");
+    day.onclick = () => {
+      if(isOutside){
+        viewDate = new Date(date.getFullYear(),date.getMonth(),1);
+        loadMonth().then(()=>selectDate(iso));
+      }else{
+        selectDate(iso);
+      }
+    };
+
+    let html = `<div class="dayNumber">${date.getDate()}</div>`;
+    entries.slice(0,3).forEach(entry => {
+      html += `<span class="dayBadge ${entry.is_paid ? "paid" : "unpaid"}">
+        <strong>${escapeHtml(tourName(entry.tour_id))}</strong>
+        ${money(entry.revenue)} ${entry.is_paid ? "✓" : "•"}
+      </span>`;
+    });
+    if(entries.length > 3){
+      html += `<span class="dayBadge">+ ${entries.length-3} autre(s)</span>`;
+    }
+    if(entries.length){
+      html += `<div class="dayTotal">Total : ${money(total)}</div>`;
+    }
+    day.innerHTML = html;
+    grid.appendChild(day);
+  }
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function selectDate(iso){
+  selectedDate = iso;
+  editingId = null;
+  const date = parseIsoDate(iso);
+  $("selectedDateLabel").textContent =
+    new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
+  $("saveBtn").disabled = false;
+  $("newBtn").disabled = false;
+  fillEditorForSelectedTour();
+  renderCalendar();
+}
+
+function dayEntries(){
+  return workDays.filter(x => x.work_date === selectedDate);
+}
+
+function fillEditorForSelectedTour(){
+  if(!selectedDate){
+    clearEditor();
+    return;
+  }
+
+  const tourId = selectedTourId();
+  const existing = dayEntries().find(x => x.tour_id === tourId);
+
+  if(existing){
+    editingId = existing.id;
+    $("revenue").value = existing.revenue ?? "";
+    $("isPaid").checked = !!existing.is_paid;
+    $("notes").value = existing.notes || "";
+    $("deleteBtn").disabled = false;
+  }else{
+    editingId = null;
+    $("revenue").value = "";
+    $("isPaid").checked = false;
+    $("notes").value = "";
+    $("deleteBtn").disabled = true;
+  }
+
+  renderDayEntries();
+}
+
+function newEntry(){
+  editingId = null;
+  $("revenue").value = "";
+  $("isPaid").checked = false;
+  $("notes").value = "";
+  $("deleteBtn").disabled = true;
+  renderDayEntries();
+}
+
+function clearEditor(){
+  $("selectedDateLabel").textContent = "Clique sur un jour du calendrier.";
+  $("revenue").value = "";
+  $("isPaid").checked = false;
+  $("notes").value = "";
+  $("saveBtn").disabled = true;
+  $("newBtn").disabled = true;
+  $("deleteBtn").disabled = true;
+  $("dayEntries").innerHTML = "";
+}
+
+function renderDayEntries(){
+  const box = $("dayEntries");
+  const entries = dayEntries();
+  box.innerHTML = "<h3>Enregistrements du jour</h3>";
+
+  if(!entries.length){
+    box.innerHTML += '<div class="empty">Aucune tournée enregistrée ce jour.</div>';
+    return;
+  }
+
+  entries.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "entryItem" + (entry.id === editingId ? " active" : "");
+    div.innerHTML = `
+      <div class="entryItemTitle">${escapeHtml(tourName(entry.tour_id))}</div>
+      <div class="entryItemMeta">${money(entry.revenue)} — ${entry.is_paid ? "Payée" : "Non payée"}</div>`;
+    div.onclick = () => {
+      $("tourSelect").value = entry.tour_id;
+      editingId = entry.id;
+      $("revenue").value = entry.revenue ?? "";
+      $("isPaid").checked = !!entry.is_paid;
+      $("notes").value = entry.notes || "";
+      $("deleteBtn").disabled = false;
+      localStorage.setItem("current_tour_id", entry.tour_id);
+      renderDayEntries();
+    };
+    box.appendChild(div);
+  });
+}
+
+async function saveWorkDay(){
+  const tourId = selectedTourId();
+  if(!selectedDate){ alert("Choisis une date."); return; }
+  if(!tourId){ alert("Choisis une tournée."); return; }
+
+  const rawRevenue = String($("revenue").value || "0").replace(",", ".");
+  const revenue = Number(rawRevenue);
+  if(!Number.isFinite(revenue) || revenue < 0){
+    alert("Le chiffre d’affaires n’est pas valide.");
+    return;
+  }
+
+  const payload = {
+    work_date:selectedDate,
+    tour_id:tourId,
+    revenue:Math.round(revenue*100)/100,
+    is_paid:$("isPaid").checked,
+    notes:$("notes").value.trim(),
+    updated_at:new Date().toISOString()
+  };
+
+  setStatus("Enregistrement…");
+
+  let result;
+  if(editingId){
+    result = await db.from("work_days").update(payload).eq("id", editingId).select().single();
+  }else{
+    result = await db.from("work_days").insert(payload).select().single();
+  }
+
+  if(result.error){
+    if(result.error.code === "23505"){
+      setStatus("Cette tournée existe déjà pour ce jour. Sélectionne-la dans la liste pour la modifier.", true);
+    }else{
+      setStatus("Erreur d’enregistrement : " + result.error.message, true);
+    }
+    return;
+  }
+
+  editingId = result.data.id;
+  await loadMonth();
+  selectDate(selectedDate);
+  setStatus("Journée enregistrée.");
+}
+
+async function deleteWorkDay(){
+  if(!editingId) return;
+  if(!confirm("Supprimer cet enregistrement ?")) return;
+
+  const {error} = await db.from("work_days").delete().eq("id",editingId);
+  if(error){
+    setStatus("Erreur suppression : " + error.message, true);
+    return;
+  }
+
+  editingId = null;
+  await loadMonth();
+  selectDate(selectedDate);
+  setStatus("Enregistrement supprimé.");
+}
+
+function updateSummary(){
+  const uniqueDays = new Set(workDays.map(x=>x.work_date)).size;
+  const revenue = workDays.reduce((s,x)=>s+Number(x.revenue||0),0);
+  const paid = workDays.filter(x=>x.is_paid).reduce((s,x)=>s+Number(x.revenue||0),0);
+  const unpaid = workDays.filter(x=>!x.is_paid).reduce((s,x)=>s+Number(x.revenue||0),0);
+
+  $("sumDays").textContent = uniqueDays;
+  $("sumEntries").textContent = workDays.length;
+  $("sumRevenue").textContent = money(revenue);
+  $("sumPaid").textContent = money(paid);
+  $("sumUnpaid").textContent = money(unpaid);
+}
+
+init();
+</script>
+</body>
+</html>
