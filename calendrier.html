@@ -1,3 +1,1459 @@
+ChatGPT Plus
+
+
+
+
+mer. 24 juin à 15:51
+
+Texte collé(65).txt
+Document
+ci joint le code de la page
+
+
+Agenda - 2026-06-24T143758.981.pdf
+PDF
+
+Parfait. J'ai extrait les patients de l'agenda. Pour les importer dans ta tournée Coralie, le plus simple est de coller ce texte dans ton module Import texte / JSON.
+
+Format compatible avec ton site :
+
+DEVESELEER Lenaic;4 rue Abel de Pujol 59300 Valenciennes;08:00;
+LAMBECQ Francine;3 rue des Bajeux 59300 Valenciennes;08:00;
+ROLAND Nicole;32 rue Gaston Griolet 59125 Trith-Saint-Léger;08:00;
+WACHALA Gregoire;App 32 6 rue Blaise Pascal 59880 Saint-Saulve;08:00;
+BAUDUIN Rene;121 Avenue de Reims 59300 Valenciennes;09:00;
+DELCAMBRE Therese;184 Avenue de Liège Résidence Jacques Brel Appartement 41 59300 Valenciennes;09:00;
+QUARREZ Micheline;1 rue des Flandres Appartement 8 59300 Valenciennes;09:00;
+VAIR Xavier;232 Boulevard Henri Harpignies 59300 Valenciennes;09:00;
+DESOIL Florence;Résidence La Girondière Appartement 123 27 rue Henry Derycke 59300 Valenciennes;09:30;
+HENNOTELLE Annie;1 rue des Flandres Appartement 10 59300 Valenciennes;09:30;
+WITTRANT Monique;1 rue des Flandres Appartement 37 59300 Valenciennes;09:30;
+GENELLE Sylvie;13 rue Saint Martin 59300 Valenciennes;10:00;
+LEVASSEUR Jean Michel;OVELIA Appartement 111 59880 Saint-Saulve;10:00;
+MIROUX Catherine;Résidence OVELIA Appartement 111 39 rue Henri Barbusse 59880 Saint-Saulve;10:00;
+DAZIN Nicole;84 rue Baudouin l'Edifieur Appartement 23 59300 Valenciennes;10:30;
+MINET Jacques;49 rue Henry Barbusse Appartement 43 59880 Saint-Saulve;10:30;
+FABIAN William;50 bis rue Guillaume Apollinaire 59880 Saint-Saulve;12:00;
+DELCAMBRE Daniel;184 Avenue de Liège Appartement 41 Entrée 6 59300 Valenciennes;18:00;
+FACON Ghislaine;Résidence L'Orée du Rue Henri Barbusse 59880 Saint-Saulve;18:00;
+J'ai supprimé volontairement les doublons de la journée :
+
+BAUDUIN René (09h00 et 16h00)
+
+ROLAND Nicole (08h00, 12h00, 17h00)
+
+LAMBECQ Francine (08h00, 17h00)
+
+WACHALA Grégoire (08h00, 17h00)
+
+DEVESELEER Lenaic (08h00, 18h00)
+
+etc. 
+
+
+Tu auras donc 19 patients uniques à importer.
+
+Petite question avant d'aller plus loin : dans la tournée Coralie, souhaites-tu :
+
+remplacer complètement les patients existants par cette nouvelle liste,
+
+ou ajouter uniquement les nouveaux patients sans toucher à ceux déjà présents ?
+
+Selon ton choix, je peux même te générer directement le script SQL Supabase correspondant.
+
+
+Alors c’est parfait : tu sélectionnes Coralie, puis tu colles la liste dans Import texte / JSON.
+
+Comme la tournée est vide, ça ajoutera directement les 19 patients dans l’ordre extrait, avec les horaires.
+
+
+aujourd’hui 22:10
+
+Texte collé(75).txt
+Document
+je reviens sur la ppage de tourné,est ce qu'il serait possible de creer une page avec un calendrier affichant mois par mois.apres selection de la tourné sur le coté du calendrier quand on click sur un jour,et bien ca enregistre pour qui ce jour la marion a travailé,de plus il y aurait a coté une zone de texte relié a supabase ou on peut indiqué le chiffre d'affaire et une case a cocher si cette journée a éte payé.sur le calendrier les jours passés qui n'ont pas etes payé serait en rouge,et ette page serait accesiible depuis un lien sur la page tourné ci jointe
+
+Oui, c’est tout à fait possible, et cela s’intègre bien à ta page actuelle qui charge déjà les tournées depuis la table tours. 
+
+
+Fonctionnement proposé
+Une nouvelle page, par exemple :
+
+calendrier.html
+Elle contiendrait :
+
+un calendrier affiché mois par mois ;
+
+les boutons mois précédent, mois suivant et aujourd’hui ;
+
+la liste des tournées sur le côté ;
+
+une fiche pour saisir le chiffre d’affaires ;
+
+une case Journée payée ;
+
+une zone de notes ;
+
+un résumé mensuel :
+
+chiffre d’affaires total ;
+
+montant payé ;
+
+montant restant à payer.
+
+Utilisation
+Marion sélectionne une tournée, par exemple Coralie.
+
+Elle clique sur le jour où elle a travaillé.
+
+Une fiche s’ouvre avec :
+
+la date ;
+
+la tournée sélectionnée ;
+
+le chiffre d’affaires ;
+
+une case « Payée » ;
+
+une note facultative.
+
+Elle enregistre dans Supabase.
+
+Un même jour pourrait contenir plusieurs tournées. Par exemple :
+
+matin : Coralie ;
+
+soir : une autre tournée.
+
+Couleurs du calendrier
+Je te conseille ce fonctionnement :
+
+Vert : journée travaillée et payée ;
+
+Rouge : journée passée, travaillée mais non payée ;
+
+Bleu : journée travaillée à venir ou en attente ;
+
+Gris : aucune tournée enregistrée ;
+
+un petit badge avec le nom de la tournée et le chiffre d’affaires dans chaque journée.
+
+Le jour actuel aurait aussi une bordure spéciale.
+
+Nouvelle table Supabase
+Tu pourrais créer cette table dans l’éditeur SQL de Supabase :
+
+create table public.work_days (
+    id uuid primary key default gen_random_uuid(),
+
+    work_date date not null,
+    tour_id uuid not null references public.tours(id) on delete cascade,
+
+    revenue numeric(10,2) not null default 0,
+    is_paid boolean not null default false,
+    notes text,
+
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now(),
+
+    constraint work_days_date_tour_unique
+        unique (work_date, tour_id)
+);
+
+create index work_days_work_date_idx
+    on public.work_days(work_date);
+
+create index work_days_tour_id_idx
+    on public.work_days(tour_id);
+La contrainte :
+
+unique (work_date, tour_id)
+évite d’enregistrer deux fois la même tournée pour la même journée.
+
+Sécurité Supabase
+Comme ton site utilise directement la clé publique Supabase, il faut que les règles RLS soient correctement configurées.
+
+Pour rester cohérent avec le fonctionnement actuel de ton site, tu pourrais commencer par :
+
+alter table public.work_days enable row level security;
+
+create policy "Lecture publique work_days"
+on public.work_days
+for select
+using (true);
+
+create policy "Ajout public work_days"
+on public.work_days
+for insert
+with check (true);
+
+create policy "Modification publique work_days"
+on public.work_days
+for update
+using (true)
+with check (true);
+
+create policy "Suppression publique work_days"
+on public.work_days
+for delete
+using (true);
+Cela fonctionne, mais ce n’est pas très sécurisé. À terme, il serait préférable d’ajouter une authentification pour empêcher quelqu’un d’autre de modifier les journées de Marion.
+
+Lien depuis la page des tournées
+Dans la barre supérieure de ta page actuelle, on ajouterait ce bouton :
+
+<button class="orange" onclick="window.location.href='calendrier.html'">
+  📅 Calendrier
+</button>
+Par exemple ici :
+
+<div class="topbar">
+  <label for="tourSelect">Tournée</label>
+  <select id="tourSelect"></select>
+
+  <button class="green" onclick="openTourForm()">+ Tournée</button>
+
+  <button class="orange" onclick="window.location.href='calendrier.html'">
+    📅 Calendrier
+  </button>
+
+  <button class="secondary" onclick="reloadAll()">Recharger</button>
+</div>
+Sur la page calendrier, il y aurait un bouton retour :
+
+<button onclick="window.location.href='index.html'">
+  ← Retour aux tournées
+</button>
+Il faudra simplement adapter index.html au vrai nom de ta page actuelle.
+
+Exemple d’enregistrement Supabase
+Quand Marion enregistre une journée, le JavaScript ferait une mise à jour ou une création :
+
+const payload = {
+  work_date: selectedDate,
+  tour_id: selectedTourId,
+  revenue: Number(revenueInput.value || 0),
+  is_paid: paidCheckbox.checked,
+  notes: notesInput.value.trim(),
+  updated_at: new Date().toISOString()
+};
+
+const { error } = await db
+  .from("work_days")
+  .upsert(payload, {
+    onConflict: "work_date,tour_id"
+  });
+
+if (error) {
+  alert("Erreur : " + error.message);
+  return;
+}
+
+alert("Journée enregistrée.");
+Cette organisation permettrait aussi, plus tard, d’ajouter facilement :
+
+un filtre par année ;
+
+un export annuel pour le comptable ;
+
+le total par tournée ;
+
+le nombre de jours travaillés ;
+
+les sommes encore impayées ;
+
+une date réelle de paiement ;
+
+l’identité de la personne ayant payé ;
+
+une distinction matin/soir ou journée complète.
+
+La meilleure structure serait donc de créer une nouvelle page complète calendrier.html, puis de modifier ta page actuelle pour y ajouter le bouton d’accès.
+
+
+aller peut tu me codé le tout?
+
+C’est prêt.
+
+J’ai créé :
+
+la page actuelle complète avec le bouton 📅 Calendrier ajouté ;
+
+la nouvelle page calendrier mois par mois ;
+
+le script SQL pour créer la table Supabase ;
+
+un fichier d’installation ;
+
+un ZIP contenant le tout.
+
+Fichiers
+📦 Télécharger le projet complet
+
+Ou séparément :
+
+index.html
+
+calendrier.html
+
+supabase_work_days.sql
+
+INSTALLATION.txt
+
+Fonctionnement du calendrier
+Après avoir choisi une tournée, Marion clique sur un jour puis renseigne :
+
+le chiffre d’affaires ;
+
+si la journée est payée ;
+
+une note éventuelle.
+
+Le calendrier affiche :
+
+vert : journée payée ;
+
+rouge : journée passée non payée ;
+
+bleu clair : journée actuelle ou future non payée.
+
+La page calcule également automatiquement :
+
+le nombre de jours travaillés ;
+
+le chiffre d’affaires du mois ;
+
+le montant déjà payé ;
+
+le montant restant à payer.
+
+Il faut d’abord exécuter le fichier supabase_work_days.sql dans Supabase > SQL Editor, puis placer index.html et calendrier.html dans le même dossier sur ton hébergement. 
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tournées infirmières Supabase</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f6fb;color:#202124}
+.header{background:#1769aa;color:white;padding:16px}
+.header h1{margin:0;font-size:22px}
+.header p{margin:6px 0 0;font-size:13px;opacity:.9}
+
+.topbar{background:white;border-bottom:1px solid #dce6f1;padding:12px 16px;display:flex;gap:10px;align-items:center;position:sticky;top:0;z-index:20}
+.topbar label{font-weight:800;color:#1769aa}
+.topbar select{flex:1;padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-weight:700;background:#f8fafc}
+button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:#1769aa;color:white}
+button.secondary{background:#667085}
+button.green{background:#188038}
+button.orange{background:#f57c00}
+button.danger{background:#c62828}
+button.light{background:#eef4fb;color:#1769aa}
+
+.mobileTabs{display:none;background:white;border-bottom:1px solid #dce6f1;position:sticky;top:61px;z-index:19}
+.mobileTabs button{flex:1;border-radius:0;background:white;color:#1769aa;border-bottom:3px solid transparent}
+.mobileTabs button.active{background:#eef4fb;border-bottom-color:#1769aa}
+
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:16px}
+.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}
+.panel h2{font-size:18px;margin:0;padding:14px 16px;background:#eef4fb;border-bottom:1px solid #dce6f1}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;padding:12px 16px;border-bottom:1px solid #eee}
+.toolbar input{flex:1;min-width:180px;padding:10px;border:1px solid #ccc;border-radius:10px}
+.moreBox,.importBox{display:none;padding:12px 16px;border-bottom:1px solid #eee;background:#fafafa}
+.moreBox.open{display:flex;gap:8px;flex-wrap:wrap}
+.importBox textarea,.textarea{width:100%;min-height:110px;border:1px solid #ddd;border-radius:10px;padding:10px;font-family:monospace;font-size:12px}
+.notice{font-size:12px;color:#667085;padding:0 16px 12px;line-height:1.4}
+.status{font-size:12px;color:#667085;padding:10px 16px;background:#fff;border-bottom:1px solid #eee}
+
+.list{padding:12px;max-height:calc(100vh - 275px);overflow:auto}
+.card{border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:white;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.card.selected{background:#e8f5e9;border-color:#188038}
+.name{font-weight:800;font-size:15px}
+.addr{font-size:13px;color:#475467;margin-top:4px}
+.meta{font-size:12px;color:#667085;margin-top:4px;white-space:pre-line}
+.cardActions,.routeActions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.cardActions button,.routeActions button{padding:8px 9px;font-size:12px}
+
+.routeItem{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;border:1px solid #e2e8f0;border-radius:12px;margin-bottom:10px;padding:10px;background:white}
+.rank{width:28px;height:28px;border-radius:50%;background:#1769aa;color:white;display:flex;align-items:center;justify-content:center;font-weight:800}
+.houseBtn{background:#fff7ed!important;color:#c2410c!important}
+.goBtn{background:#188038!important;color:white!important}
+.mapBtn{background:#e8f5e9!important;color:#188038!important}
+.empty{color:#667085;text-align:center;padding:30px 10px}
+
+.segmentBox{padding:12px 16px;border-bottom:1px solid #eee;background:#fff;display:none}
+.segmentTitle{font-weight:800;margin-bottom:8px}
+.segmentButtons{display:flex;gap:8px;flex-wrap:wrap}
+.segmentButtons button{background:#188038}
+
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:none;align-items:center;justify-content:center;padding:16px}
+.box{width:100%;max-width:650px;background:white;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+.box h2,.houseHeader{margin:0;padding:16px 18px;background:#1769aa;color:white;font-size:20px}
+.formContent{padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field.full{grid-column:1/-1}
+.field label{font-size:13px;font-weight:700;color:#344054}
+.field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial}
+.field textarea{min-height:80px;resize:vertical}
+.formButtons{padding:14px 16px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+.houseHeader{display:flex;justify-content:space-between;align-items:center}
+.houseContent{padding:14px 16px}
+.housePhoto{width:100%;min-height:280px;border:0;border-radius:14px;background:#eef4fb;object-fit:cover;display:block}
+.houseButtons{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.houseButtons button{flex:1}
+
+@media(max-width:900px){
+ .topbar{flex-wrap:wrap;padding:10px}
+ .topbar label{width:100%}
+ .topbar select{min-width:100%}
+ .topbar button{flex:1}
+ .mobileTabs{display:flex}
+ body.mobile-patients #routePanel{display:none}
+ body.mobile-route #patientsPanel{display:none}
+ .wrap{grid-template-columns:1fr;padding:10px}
+ .panel{border-radius:12px}
+ .list{max-height:none}
+ .toolbar input{min-width:100%;order:-1}
+ .toolbar button{flex:1;font-size:13px;padding:11px 8px}
+ .card{grid-template-columns:1fr}
+ .cardActions button{flex:1}
+ .routeItem{grid-template-columns:30px 1fr}
+ .routeActions{grid-column:1/-1;justify-content:stretch}
+ .routeActions button{flex:1}
+ .formContent{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+<div class="header">
+  <h1>Tournées infirmières</h1>
+  <p>Supabase + sélection des patients + ordre de tournée + Waze / Maps / Maison.</p>
+</div>
+
+<div class="topbar">
+  <label for="tourSelect">Tournée</label>
+  <select id="tourSelect"></select>
+  <button class="green" onclick="openTourForm()">+ Tournée</button>
+  <button class="orange" onclick="window.location.href='calendrier.html'">📅 Calendrier</button>
+  <button class="secondary" onclick="reloadAll()">Recharger</button>
+</div>
+
+<div class="mobileTabs">
+  <button id="tabPatients" class="active" onclick="showMobileTab('patients')">Patients</button>
+  <button id="tabRoute" onclick="showMobileTab('route')">Tournée</button>
+</div>
+
+<div class="wrap">
+  <section id="patientsPanel" class="panel">
+    <h2 id="patientsTitle">Patients</h2>
+    <div class="toolbar">
+      <input id="search" placeholder="Rechercher nom, rue, ville…" oninput="renderPatients()">
+      <button class="green" onclick="openPatientForm()">+ Patient</button>
+      <button class="secondary" onclick="toggleMorePatients()">Options</button>
+    </div>
+    <div id="morePatients" class="moreBox">
+      <button onclick="selectAllVisible()">Ajouter visibles à la tournée</button>
+      <button class="secondary" onclick="clearSelection()">Vider sélection</button>
+      <button class="orange" onclick="toggleImport()">Import texte / JSON</button>
+    </div>
+
+    <div id="importBox" class="importBox">
+      <div class="meta">Import : colle un JSON ancien ou du texte au format Nom;Adresse;Horaire;Note</div>
+      <textarea id="importText" placeholder="Colle ici ton JSON ou tes lignes Nom;Adresse;Horaire;Note"></textarea>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="green" onclick="importPatients()">Importer dans la tournée sélectionnée</button>
+        <button class="secondary" onclick="toggleImport()">Fermer</button>
+      </div>
+    </div>
+
+    <div id="status" class="status">Chargement...</div>
+    <div class="notice">Coche les patients que tu veux mettre dans la tournée du jour.</div>
+    <div id="patients" class="list"></div>
+  </section>
+
+  <section id="routePanel" class="panel">
+    <h2 id="routeTitle">Tournée</h2>
+    <div class="toolbar">
+      <button class="green" onclick="openGoogleMapsFullOrFirst()">Google Maps</button>
+      <button onclick="openWazeNext()">Waze 1er arrêt</button>
+      <button class="secondary" onclick="toggleMoreRoute()">Options</button>
+    </div>
+    <div id="moreRoute" class="moreBox">
+      <button class="green" onclick="saveVisitOrder()">💾 Enregistrer ordre</button>
+      <button onclick="reloadVisitOrder()">↺ Recharger ordre</button>
+      <button class="danger" onclick="clearSelection()">🗑 Vider tournée</button>
+      <button class="orange" onclick="renderSegments(true)">Fractionner Maps</button>
+      <button class="secondary" onclick="copyRoute()">Copier tournée</button>
+      <button class="green" onclick="openSaveDailyRouteForm()">💾 Sauvegarder tournée type</button>
+      <button onclick="openRestoreDailyRouteForm()">📂 Restaurer tournée type</button>
+    </div>
+    <div class="notice">Le bouton <b>🚗 Aller à</b> ouvre Waze directement vers le patient.</div>
+    <div id="segments" class="segmentBox"></div>
+    <div id="route" class="list"></div>
+    <div style="padding:12px 16px;border-top:1px solid #eee">
+      <textarea id="routeText" class="textarea" readonly></textarea>
+    </div>
+  </section>
+</div>
+
+<div id="patientOverlay" class="overlay">
+  <div class="box">
+    <h2 id="patientFormTitle">Nouveau patient</h2>
+    <div class="formContent">
+      <div class="field"><label>Nom / Prénom *</label><input id="patientName"></div>
+      <div class="field"><label>Téléphone</label><input id="patientPhone"></div>
+      <div class="field full"><label>Adresse complète *</label><input id="patientAddress"></div>
+      <div class="field"><label>Horaires</label><input id="patientTime"></div>
+      <div class="field full"><label>Notes</label><textarea id="patientNotes"></textarea></div>
+    </div>
+    <div class="formButtons">
+      <button class="secondary" onclick="closePatientForm()">Annuler</button>
+      <button class="green" onclick="savePatient()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="tourOverlay" class="overlay">
+  <div class="box">
+    <h2>Nouvelle tournée</h2>
+    <div class="formContent">
+      <div class="field full"><label>Nom</label><input id="newTourName" placeholder="Ex : Saint-Saulve"></div>
+      <div class="field full"><label>Description</label><input id="newTourDescription"></div>
+    </div>
+    <div class="formButtons">
+      <button class="secondary" onclick="closeTourForm()">Annuler</button>
+      <button class="green" onclick="saveTour()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<div id="houseOverlay" class="overlay">
+  <div class="box">
+    <div class="houseHeader">
+      <span id="houseTitle">Maison</span>
+      <button class="secondary" onclick="closeHousePopup()">Fermer</button>
+    </div>
+    <div class="houseContent">
+      <img id="housePhoto" class="housePhoto" alt="Street View">
+      <div id="houseAddress" class="meta" style="margin-top:10px"></div>
+      <div class="houseButtons">
+        <button class="green" onclick="openCurrentHouseMaps()">Maps</button>
+        <button onclick="openCurrentHouseWaze()">Waze</button>
+        <button class="secondary" onclick="closeHousePopup()">Retour</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dailyRouteOverlay" class="overlay">
+  <div class="box">
+    <h2 id="dailyRouteTitle">Tournée type</h2>
+
+    <div id="dailySaveBox" class="formContent">
+      <div class="field full">
+        <label>Nom de la tournée type</label>
+        <input id="dailyRouteName" placeholder="Ex : Lundi matin, Mardi soir, Remplacement Valenciennes">
+      </div>
+    </div>
+
+    <div id="dailyRestoreBox" style="padding:16px;display:none">
+      <div class="field full">
+        <label>Choisir une tournée sauvegardée</label>
+        <select id="dailyRouteSelect" style="padding:11px;border:1px solid #cfd8e3;border-radius:10px;width:100%;font-weight:700"></select>
+      </div>
+      <div id="dailyRouteInfo" class="meta" style="margin-top:10px"></div>
+    </div>
+
+    <div class="formButtons">
+      <button class="secondary" onclick="closeDailyRouteForm()">Annuler</button>
+      <button id="dailySaveBtn" class="green" onclick="saveDailyRoute()">Sauvegarder</button>
+      <button id="dailyRestoreBtn" class="green" onclick="restoreDailyRoute()" style="display:none">Restaurer</button>
+      <button id="dailyDeleteBtn" class="danger" onclick="deleteDailyRoute()" style="display:none">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://iybjtvwdnqnebuexesiz.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5Ymp0dndkbnFuZWJ1ZXhlc2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDEwNjgsImV4cCI6MjA5MTU3NzA2OH0.dAImywya67QbKj1dCR3GZg4p24jxPPvQi5wGkJvdNLk";
+const GOOGLE_STREET_VIEW_API_KEY = "AIzaSyDXeTRU9Ex3nDGMgkH_r4Z8SEFXprnIcns";
+const GOOGLE_MAX_STOPS_PER_SEGMENT = 9;
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let tours = [];
+let patients = [];
+let selectedIds = [];
+let currentTourId = localStorage.getItem("current_tour_id") || "";
+let editingPatientId = null;
+let currentHouseAddress = "";
+
+const $ = id => document.getElementById(id);
+
+function setStatus(msg, isError=false){
+  $("status").textContent = msg;
+  $("status").style.color = isError ? "#c62828" : "#667085";
+}
+
+function norm(s){
+  return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+
+function enc(s){ return encodeURIComponent(s); }
+
+function escapeHtml(s){
+  return String(s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function selectedKey(){
+  return "selected_patients_" + currentTourId;
+}
+
+function loadSelected(){
+  try {
+    selectedIds = JSON.parse(localStorage.getItem(selectedKey()) || "[]");
+    if(!Array.isArray(selectedIds)) selectedIds = [];
+  } catch(e) {
+    selectedIds = [];
+  }
+
+  const valid = new Set(patients.map(p => p.id));
+  selectedIds = selectedIds.filter(id => valid.has(id));
+}
+
+function saveSelected(){
+  if(currentTourId) localStorage.setItem(selectedKey(), JSON.stringify(selectedIds));
+}
+
+function routePatients(){
+  return selectedIds.map(id => patients.find(p => p.id === id)).filter(Boolean);
+}
+
+async function reloadAll(){
+  await loadTours();
+  await loadPatients();
+}
+
+async function loadTours(){
+  setStatus("Chargement des tournées...");
+  const { data, error } = await db
+    .from("tours")
+    .select("id,name,description,is_active")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  if(error){
+    setStatus("Erreur tournées : " + error.message, true);
+    alert("Erreur Supabase tournées : " + error.message);
+    return;
+  }
+
+  tours = data || [];
+
+  if(!tours.length){
+    currentTourId = "";
+    renderTourSelect();
+    setStatus("Aucune tournée. Clique sur + Tournée.");
+    return;
+  }
+
+  if(!currentTourId || !tours.some(t => t.id === currentTourId)){
+    currentTourId = tours[0].id;
+    localStorage.setItem("current_tour_id", currentTourId);
+  }
+
+  renderTourSelect();
+}
+
+function renderTourSelect(){
+  const sel = $("tourSelect");
+  sel.innerHTML = "";
+
+  tours.forEach(t => {
+    const opt = document.createElement("option");
+    opt.value = t.id;
+    opt.textContent = t.name;
+    if(t.id === currentTourId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  sel.onchange = async () => {
+    currentTourId = sel.value;
+    localStorage.setItem("current_tour_id", currentTourId);
+    selectedIds = [];
+    await loadPatients();
+  };
+}
+
+async function loadPatients(){
+  if(!currentTourId){
+    patients = [];
+    selectedIds = [];
+    renderPatients();
+    renderRoute();
+    return;
+  }
+
+  const tour = tours.find(t => t.id === currentTourId);
+  $("patientsTitle").textContent = "Patients - " + (tour ? tour.name : "");
+  $("routeTitle").textContent = "Tournée - " + (tour ? tour.name : "");
+
+  setStatus("Chargement des patients...");
+  const { data, error } = await db
+    .from("patients")
+    .select("*")
+    .eq("tour_id", currentTourId)
+    .eq("is_active", true)
+    .order("visit_order", { ascending: true })
+    .order("created_at", { ascending: true });
+
+  if(error){
+    setStatus("Erreur patients : " + error.message, true);
+    alert("Erreur Supabase patients : " + error.message);
+    return;
+  }
+
+  patients = data || [];
+  loadSelected();
+
+  setStatus(patients.length + " patient(s) chargé(s). " + selectedIds.length + " sélectionné(s).");
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function renderPatients(){
+  const q = norm($("search").value || "");
+  const box = $("patients");
+  box.innerHTML = "";
+
+  const filtered = patients.filter(p => norm(p.name + " " + p.address + " " + (p.notes || "")).includes(q));
+
+  if(!filtered.length){
+    box.innerHTML = '<div class="empty">Aucun patient dans cette tournée.</div>';
+    return;
+  }
+
+  filtered.forEach(p => {
+    const checked = selectedIds.includes(p.id);
+    const div = document.createElement("div");
+    div.className = "card" + (checked ? " selected" : "");
+    div.innerHTML = `
+      <div>
+        <label style="display:flex;gap:8px;cursor:pointer;align-items:flex-start">
+          <input type="checkbox" ${checked ? "checked" : ""} onchange="togglePatient('${p.id}')">
+          <div>
+            <div class="name">${escapeHtml(p.name)}</div>
+            <div class="addr">${escapeHtml(p.address)}</div>
+            <div class="meta">${escapeHtml(p.time_info || "")}${p.phone ? " — Tél : " + escapeHtml(p.phone) : ""}${p.notes ? " — " + escapeHtml(p.notes) : ""}</div>
+          </div>
+        </label>
+      </div>
+      <div class="cardActions">
+        <button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller</button>
+        <button onclick="editPatient('${p.id}')">Modifier</button>
+        <button class="danger" onclick="deletePatient('${p.id}')">Supprimer</button>
+      </div>`;
+    box.appendChild(div);
+  });
+}
+
+function togglePatient(id){
+  const pos = selectedIds.indexOf(id);
+  if(pos >= 0) selectedIds.splice(pos, 1);
+  else selectedIds.push(id);
+
+  saveSelected();
+  setStatus(patients.length + " patient(s) chargé(s). " + selectedIds.length + " sélectionné(s).");
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function selectAllVisible(){
+  const q = norm($("search").value || "");
+  patients.forEach(p => {
+    if(norm(p.name + " " + p.address + " " + (p.notes || "")).includes(q) && !selectedIds.includes(p.id)){
+      selectedIds.push(p.id);
+    }
+  });
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function clearSelection(){
+  selectedIds = [];
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function renderRoute(){
+  const box = $("route");
+  const r = routePatients();
+  box.innerHTML = "";
+
+  if(!r.length){
+    box.innerHTML = '<div class="empty">Aucun patient sélectionné. Coche les patients à gauche.</div>';
+    $("routeText").value = "";
+    return;
+  }
+
+  r.forEach((p, pos) => {
+    const div = document.createElement("div");
+    div.className = "routeItem";
+    div.innerHTML = `
+      <div class="rank">${pos + 1}</div>
+      <div>
+        <div class="name">${escapeHtml(p.name)}</div>
+        <div class="addr">${escapeHtml(p.address)}</div>
+        <div class="meta">${escapeHtml(p.time_info || "")}${p.notes ? " — " + escapeHtml(p.notes) : ""}</div>
+      </div>
+      <div class="routeActions">
+        <button class="houseBtn" onclick="viewHouse('${p.id}')">🏠 Maison</button>
+        <button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller à</button>
+        <button class="mapBtn" onclick="openPatientMap('${p.id}')">📍 Maps</button>
+        <button class="light" onclick="moveSelected(${pos}, -1)">↑</button>
+        <button class="light" onclick="moveSelected(${pos}, 1)">↓</button>
+        <button class="danger" onclick="removeSelected(${pos})">✕</button>
+      </div>`;
+    box.appendChild(div);
+  });
+
+  $("routeText").value = r.map((p,i) => `${i+1}. ${p.name} — ${p.address}`).join("\n");
+}
+
+async function moveSelected(pos, dir){
+  const n = pos + dir;
+  if(n < 0 || n >= selectedIds.length) return;
+
+  [selectedIds[pos], selectedIds[n]] = [selectedIds[n], selectedIds[pos]];
+  saveSelected();
+  renderRoute();
+  renderPatients();
+  renderSegments(false);
+
+  // Sauvegarde l'ordre sélectionné dans Supabase aussi.
+  for(let i=0; i<selectedIds.length; i++){
+    await db.from("patients").update({ visit_order: i + 1 }).eq("id", selectedIds[i]);
+  }
+}
+
+function removeSelected(pos){
+  selectedIds.splice(pos, 1);
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+}
+
+function getPatient(id){ return patients.find(p => p.id === id); }
+
+function openPatientForm(){
+  editingPatientId = null;
+  $("patientFormTitle").textContent = "Nouveau patient";
+  $("patientName").value = "";
+  $("patientPhone").value = "";
+  $("patientAddress").value = "";
+  $("patientTime").value = "";
+  $("patientNotes").value = "";
+  $("patientOverlay").style.display = "flex";
+}
+
+function editPatient(id){
+  const p = getPatient(id);
+  if(!p) return;
+
+  editingPatientId = id;
+  $("patientFormTitle").textContent = "Modifier patient";
+  $("patientName").value = p.name || "";
+  $("patientPhone").value = p.phone || "";
+  $("patientAddress").value = p.address || "";
+  $("patientTime").value = p.time_info || "";
+  $("patientNotes").value = p.notes || "";
+  $("patientOverlay").style.display = "flex";
+}
+
+function closePatientForm(){ $("patientOverlay").style.display = "none"; }
+
+async function savePatient(){
+  if(!currentTourId){
+    alert("Crée ou sélectionne une tournée d'abord.");
+    return;
+  }
+
+  const payload = {
+    name: $("patientName").value.trim(),
+    phone: $("patientPhone").value.trim(),
+    address: $("patientAddress").value.trim(),
+    time_info: $("patientTime").value.trim(),
+    notes: $("patientNotes").value.trim()
+  };
+
+  if(!payload.name){ alert("Le nom est obligatoire."); return; }
+  if(!payload.address){ alert("L'adresse est obligatoire."); return; }
+
+  if(editingPatientId){
+    const { error } = await db.from("patients").update(payload).eq("id", editingPatientId);
+    if(error){ alert("Erreur modification : " + error.message); return; }
+  }else{
+    payload.tour_id = currentTourId;
+    payload.visit_order = patients.length + 1;
+    payload.is_active = true;
+    const { error } = await db.from("patients").insert(payload);
+    if(error){ alert("Erreur création : " + error.message); return; }
+  }
+
+  closePatientForm();
+  await loadPatients();
+}
+
+async function deletePatient(id){
+  const p = getPatient(id);
+  if(!p || !confirm("Supprimer " + p.name + " ?")) return;
+
+  const { error } = await db.from("patients").update({ is_active:false }).eq("id", id);
+  if(error){ alert("Erreur suppression : " + error.message); return; }
+
+  selectedIds = selectedIds.filter(x => x !== id);
+  saveSelected();
+  await loadPatients();
+}
+
+function openTourForm(){
+  $("newTourName").value = "";
+  $("newTourDescription").value = "";
+  $("tourOverlay").style.display = "flex";
+}
+
+function closeTourForm(){ $("tourOverlay").style.display = "none"; }
+
+async function saveTour(){
+  const name = $("newTourName").value.trim();
+  const description = $("newTourDescription").value.trim();
+
+  if(!name){ alert("Le nom est obligatoire."); return; }
+
+  const { data, error } = await db.from("tours").insert({
+    name,
+    description,
+    is_active: true
+  }).select().single();
+
+  if(error){ alert("Erreur création tournée : " + error.message); return; }
+
+  currentTourId = data.id;
+  localStorage.setItem("current_tour_id", currentTourId);
+  closeTourForm();
+  await reloadAll();
+}
+
+function toggleMorePatients(){ $("morePatients").classList.toggle("open"); }
+function toggleMoreRoute(){ $("moreRoute").classList.toggle("open"); }
+function toggleImport(){
+  $("importBox").style.display = $("importBox").style.display === "block" ? "none" : "block";
+}
+
+async function importPatients(){
+  if(!currentTourId){ alert("Sélectionne une tournée."); return; }
+
+  const text = $("importText").value.trim();
+  if(!text){ alert("Colle un JSON ou du texte."); return; }
+
+  let rows = [];
+
+  try {
+    const data = JSON.parse(text);
+    let source = [];
+
+    if(data && Array.isArray(data.patients)){
+      if(Array.isArray(data.selected) && data.selected.length){
+        data.selected.forEach(i => {
+          if(Number.isInteger(i) && data.patients[i]) source.push(data.patients[i]);
+        });
+        data.patients.forEach((p, i) => {
+          if(!data.selected.includes(i)) source.push(p);
+        });
+      } else {
+        source = data.patients;
+      }
+    } else if(Array.isArray(data)){
+      source = data;
+    }
+
+    rows = source.map((p, idx) => ({
+      tour_id: currentTourId,
+      name: String(p.name || "").trim(),
+      address: String(p.address || "").trim(),
+      phone: String(p.phone || "").trim(),
+      time_info: String(p.time || p.time_info || "").trim(),
+      notes: String(p.note || p.notes || "").trim(),
+      visit_order: idx + 1,
+      is_active: true
+    })).filter(p => p.name && p.address);
+  } catch(e) {}
+
+  if(!rows.length){
+    text.split(/\r?\n/).map(x => x.trim()).filter(Boolean).forEach((line, idx) => {
+      const p = line.split(";").map(x => x.trim());
+      if(p[0] && p[1]){
+        rows.push({
+          tour_id: currentTourId,
+          name: p[0],
+          address: p[1],
+          time_info: p[2] || "",
+          notes: p[3] || "",
+          visit_order: patients.length + idx + 1,
+          is_active: true
+        });
+      }
+    });
+  }
+
+  if(!rows.length){ alert("Aucun patient valide trouvé."); return; }
+
+  if(!confirm("Importer " + rows.length + " patient(s) dans cette tournée ?")) return;
+
+  const { data: inserted, error } = await db.from("patients").insert(rows).select();
+  if(error){ alert("Erreur import : " + error.message); return; }
+
+  $("importText").value = "";
+  await loadPatients();
+
+  // Coche automatiquement les patients importés.
+  if(Array.isArray(inserted)){
+    selectedIds = inserted.map(p => p.id);
+    saveSelected();
+    renderPatients();
+    renderRoute();
+  }
+
+  alert(rows.length + " patient(s) importé(s).");
+}
+
+function getRouteAddresses(){
+  return routePatients().filter(p => p.address).map(p => ({ name:p.name, address:p.address }));
+}
+
+function buildMapsUrl(stops, origin){
+  if(!stops.length) return "";
+  let url = "https://www.google.com/maps/dir/?api=1&travelmode=driving";
+  if(origin) url += "&origin=Maing, France";
+  if(stops.length === 1) return url + "&destination=" + enc(stops[0].address);
+  url += "&destination=" + enc(stops[stops.length - 1].address);
+  const waypoints = stops.slice(0, -1).map(s => s.address).join("|");
+  if(waypoints) url += "&waypoints=" + enc(waypoints);
+  return url;
+}
+
+function segments(stops){
+  const res = [];
+  for(let i=0; i<stops.length; i+=GOOGLE_MAX_STOPS_PER_SEGMENT){
+    res.push(stops.slice(i, i + GOOGLE_MAX_STOPS_PER_SEGMENT));
+  }
+  return res;
+}
+
+function renderSegments(showAlert){
+  const box = $("segments");
+  const stops = getRouteAddresses();
+
+  if(!stops.length){
+    box.style.display = "none";
+    box.innerHTML = "";
+    if(showAlert) alert("Aucun patient sélectionné.");
+    return;
+  }
+
+  const segs = segments(stops);
+  box.style.display = "block";
+  let h = '<div class="segmentTitle">Itinéraires Google Maps fractionnés</div><div class="segmentButtons">';
+  segs.forEach((seg, idx) => {
+    const s = idx * GOOGLE_MAX_STOPS_PER_SEGMENT + 1;
+    const e = s + seg.length - 1;
+    h += `<button onclick="openGoogleSegment(${idx})">Segment ${idx+1} : ${s} à ${e}</button>`;
+  });
+  h += "</div>";
+  box.innerHTML = h;
+}
+
+function openGoogleSegment(i){
+  const seg = segments(getRouteAddresses())[i];
+  if(seg) window.open(buildMapsUrl(seg, i === 0), "_blank");
+}
+
+function openGoogleMapsFullOrFirst(){
+  const stops = getRouteAddresses();
+  if(!stops.length){ alert("Aucun patient sélectionné."); return; }
+
+  if(stops.length > GOOGLE_MAX_STOPS_PER_SEGMENT){
+    renderSegments(true);
+    alert("Plus de 9 arrêts : segments créés.");
+    return;
+  }
+
+  window.open(buildMapsUrl(stops, true), "_blank");
+}
+
+function openWazeNext(){
+  const r = routePatients();
+  if(!r.length){ alert("Aucun patient sélectionné."); return; }
+  goToPatient(r[0].id);
+}
+
+function goToPatient(id){
+  const p = getPatient(id);
+  if(!p || !p.address){ alert("Adresse manquante."); return; }
+  window.open("https://waze.com/ul?q=" + enc(p.address) + "&navigate=yes", "_blank");
+}
+
+function openPatientMap(id){
+  const p = getPatient(id);
+  if(!p || !p.address){ alert("Adresse manquante."); return; }
+  window.open("https://www.google.com/maps/search/?api=1&query=" + enc(p.address), "_blank");
+}
+
+function viewHouse(id){
+  const p = getPatient(id);
+  if(!p || !p.address){ alert("Adresse manquante."); return; }
+
+  currentHouseAddress = p.address;
+  $("houseTitle").textContent = "🏠 " + p.name;
+  $("houseAddress").textContent = p.address;
+  $("houseOverlay").style.display = "flex";
+  $("housePhoto").src =
+    "https://maps.googleapis.com/maps/api/streetview?size=900x520&fov=80&pitch=0&location=" +
+    enc(p.address) +
+    "&key=" +
+    enc(GOOGLE_STREET_VIEW_API_KEY);
+}
+
+function closeHousePopup(){ $("houseOverlay").style.display = "none"; }
+function openCurrentHouseMaps(){ if(currentHouseAddress) window.open("https://www.google.com/maps/search/?api=1&query=" + enc(currentHouseAddress), "_blank"); }
+function openCurrentHouseWaze(){ if(currentHouseAddress) window.open("https://waze.com/ul?q=" + enc(currentHouseAddress) + "&navigate=yes", "_blank"); }
+
+async function copyRoute(){
+  const t = routePatients().map((p,i) => `${i+1}. ${p.name} — ${p.address}`).join("\n");
+  $("routeText").value = t;
+  try{ await navigator.clipboard.writeText(t); alert("Tournée copiée."); }catch(e){ alert("Copie impossible."); }
+}
+
+
+async function saveVisitOrder(){
+  const r = routePatients();
+
+  if(!r.length){
+    alert("Aucun patient sélectionné dans la tournée.");
+    return;
+  }
+
+  for(let i = 0; i < r.length; i++){
+    const { error } = await db
+      .from("patients")
+      .update({ visit_order: i + 1 })
+      .eq("id", r[i].id);
+
+    if(error){
+      alert("Erreur enregistrement ordre : " + error.message);
+      return;
+    }
+  }
+
+  await loadPatients();
+
+  // On remet la sélection dans le même ordre après rechargement.
+  selectedIds = r.map(p => p.id);
+  saveSelected();
+  renderPatients();
+  renderRoute();
+
+  alert("Ordre de tournée enregistré dans Supabase.");
+}
+
+async function reloadVisitOrder(){
+  if(!currentTourId){
+    alert("Sélectionne une tournée.");
+    return;
+  }
+
+  await loadPatients();
+
+  selectedIds = patients
+    .slice()
+    .sort((a,b) => (a.visit_order || 0) - (b.visit_order || 0))
+    .map(p => p.id);
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+
+  alert("Ordre rechargé depuis Supabase.");
+}
+
+async function loadDailyRoutes(){
+  if(!currentTourId) return [];
+
+  const { data, error } = await db
+    .from("daily_routes")
+    .select("*")
+    .eq("tour_id", currentTourId)
+    .order("route_name", { ascending: true });
+
+  if(error){
+    alert("Erreur chargement tournées types : " + error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+function openSaveDailyRouteForm(){
+  const r = routePatients();
+
+  if(!r.length){
+    alert("Coche d'abord les patients de la tournée à sauvegarder.");
+    return;
+  }
+
+  $("dailyRouteTitle").textContent = "💾 Sauvegarder tournée type";
+  $("dailySaveBox").style.display = "grid";
+  $("dailyRestoreBox").style.display = "none";
+  $("dailySaveBtn").style.display = "inline-block";
+  $("dailyRestoreBtn").style.display = "none";
+  $("dailyDeleteBtn").style.display = "none";
+  $("dailyRouteName").value = "";
+  $("dailyRouteOverlay").style.display = "flex";
+}
+
+async function openRestoreDailyRouteForm(){
+  const routes = await loadDailyRoutes();
+
+  $("dailyRouteTitle").textContent = "📂 Restaurer tournée type";
+  $("dailySaveBox").style.display = "none";
+  $("dailyRestoreBox").style.display = "block";
+  $("dailySaveBtn").style.display = "none";
+  $("dailyRestoreBtn").style.display = "inline-block";
+  $("dailyDeleteBtn").style.display = "inline-block";
+
+  const select = $("dailyRouteSelect");
+  select.innerHTML = "";
+
+  if(!routes.length){
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Aucune tournée type sauvegardée";
+    select.appendChild(opt);
+    $("dailyRouteInfo").textContent = "";
+    $("dailyRestoreBtn").disabled = true;
+    $("dailyDeleteBtn").disabled = true;
+  }else{
+    routes.forEach(route => {
+      const opt = document.createElement("option");
+      opt.value = route.id;
+      opt.textContent = route.route_name;
+      opt.dataset.ids = JSON.stringify(route.selected_patient_ids || []);
+      select.appendChild(opt);
+    });
+
+    $("dailyRestoreBtn").disabled = false;
+    $("dailyDeleteBtn").disabled = false;
+    updateDailyRouteInfo();
+  }
+
+  select.onchange = updateDailyRouteInfo;
+  $("dailyRouteOverlay").style.display = "flex";
+}
+
+function updateDailyRouteInfo(){
+  const opt = $("dailyRouteSelect").selectedOptions[0];
+  if(!opt || !opt.value){
+    $("dailyRouteInfo").textContent = "";
+    return;
+  }
+
+  let ids = [];
+  try{ ids = JSON.parse(opt.dataset.ids || "[]"); }catch(e){ ids = []; }
+
+  $("dailyRouteInfo").textContent = ids.length + " patient(s) sauvegardé(s) dans cette tournée type.";
+}
+
+function closeDailyRouteForm(){
+  $("dailyRouteOverlay").style.display = "none";
+}
+
+async function saveDailyRoute(){
+  const name = $("dailyRouteName").value.trim();
+  const ids = selectedIds.slice();
+
+  if(!name){
+    alert("Donne un nom à cette tournée type.");
+    return;
+  }
+
+  if(!ids.length){
+    alert("Aucun patient sélectionné.");
+    return;
+  }
+
+  // Version robuste : pas besoin de contrainte UNIQUE / ON CONFLICT.
+  // On cherche d’abord si cette tournée type existe déjà pour cette tournée.
+  const { data: existing, error: searchError } = await db
+    .from("daily_routes")
+    .select("id")
+    .eq("tour_id", currentTourId)
+    .eq("route_name", name)
+    .maybeSingle();
+
+  if(searchError){
+    alert("Erreur recherche tournée type : " + searchError.message);
+    return;
+  }
+
+  if(existing && existing.id){
+    const { error: updateError } = await db
+      .from("daily_routes")
+      .update({
+        selected_patient_ids: ids,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existing.id);
+
+    if(updateError){
+      alert("Erreur mise à jour tournée type : " + updateError.message);
+      return;
+    }
+  }else{
+    const { error: insertError } = await db
+      .from("daily_routes")
+      .insert({
+        tour_id: currentTourId,
+        route_name: name,
+        selected_patient_ids: ids,
+        updated_at: new Date().toISOString()
+      });
+
+    if(insertError){
+      alert("Erreur sauvegarde tournée type : " + insertError.message);
+      return;
+    }
+  }
+
+  closeDailyRouteForm();
+  alert("Tournée type sauvegardée.");
+}
+
+async function restoreDailyRoute(){
+  const routeId = $("dailyRouteSelect").value;
+
+  if(!routeId){
+    alert("Choisis une tournée type.");
+    return;
+  }
+
+  const { data, error } = await db
+    .from("daily_routes")
+    .select("*")
+    .eq("id", routeId)
+    .single();
+
+  if(error){
+    alert("Erreur restauration : " + error.message);
+    return;
+  }
+
+  const ids = Array.isArray(data.selected_patient_ids) ? data.selected_patient_ids : [];
+
+  const valid = new Set(patients.map(p => p.id));
+  selectedIds = ids.filter(id => valid.has(id));
+
+  saveSelected();
+  renderPatients();
+  renderRoute();
+  renderSegments(false);
+  closeDailyRouteForm();
+
+  alert("Tournée type restaurée.");
+}
+
+async function deleteDailyRoute(){
+  const routeId = $("dailyRouteSelect").value;
+
+  if(!routeId){
+    alert("Choisis une tournée type.");
+    return;
+  }
+
+  const label = $("dailyRouteSelect").selectedOptions[0]?.textContent || "cette tournée type";
+
+  if(!confirm("Supprimer '" + label + "' ?")){
+    return;
+  }
+
+  const { error } = await db
+    .from("daily_routes")
+    .delete()
+    .eq("id", routeId);
+
+  if(error){
+    alert("Erreur suppression : " + error.message);
+    return;
+  }
+
+  closeDailyRouteForm();
+  alert("Tournée type supprimée.");
+}
+
+
+function showMobileTab(which){
+  document.body.classList.remove("mobile-patients", "mobile-route");
+  $("tabPatients").classList.remove("active");
+  $("tabRoute").classList.remove("active");
+
+  if(which === "route"){
+    document.body.classList.add("mobile-route");
+    $("tabRoute").classList.add("active");
+  } else {
+    document.body.classList.add("mobile-patients");
+    $("tabPatients").classList.add("active");
+  }
+}
+
+["patientOverlay","tourOverlay","houseOverlay","dailyRouteOverlay"].forEach(id => {
+  const el = $(id);
+  if(!el) return;
+  el.addEventListener("click", e => {
+    if(e.target === e.currentTarget){
+      e.currentTarget.style.display = "none";
+    }
+  });
+});
+
+(async function(){
+  if(window.innerWidth <= 900) showMobileTab("patients");
+  await reloadAll();
+})();
+</script>
+
+</body>
+</html>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -575,3 +2031,622 @@ init();
 </script>
 </body>
 </html>
+
+c'est pas mal du tout mais sur mobil il faudrait que le resumé du mois soit en bas de la page
+
+Bonne remarque. Sur mobile, le résumé est plus utile après la saisie de la journée plutôt qu'avant.
+
+J'ai modifié la page pour que, sur les écrans mobiles (et tablettes), l'ordre soit :
+
+📅 Calendrier
+
+✍️ Saisie de la journée
+
+📊 Résumé du mois
+
+Sur ordinateur, rien ne change : le résumé reste dans la colonne de droite.
+
+Tu peux télécharger la version corrigée ici :
+
+calendrier.html
+
+J'ai d'ailleurs quelques idées qui rendraient cette page vraiment agréable à utiliser au quotidien pour Marion :
+
+un point vert directement sur les jours payés et un point rouge sur les jours non payés (sans ouvrir la journée) ;
+
+afficher le CA directement dans la case du calendrier (ex. 320 €) ;
+
+un total mensuel toujours visible en haut ;
+
+un bouton "Tout marquer payé" quand un virement est reçu ;
+
+un graphique du chiffre d'affaires par mois ;
+
+un tableau des paiements en attente (très pratique pour savoir ce qu'il reste à encaisser).
+
+Je pense qu'on peut en faire un véritable petit outil de gestion pour les infirmières, pas seulement un calendrier. 
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendrier des tournées infirmières</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --blue:#1769aa;
+  --blue-light:#eef4fb;
+  --green:#188038;
+  --green-light:#e8f5e9;
+  --red:#c62828;
+  --red-light:#ffebee;
+  --orange:#f57c00;
+  --gray:#667085;
+  --border:#dce6f1;
+  --bg:#f4f6fb;
+}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#202124}
+button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700;background:var(--blue);color:white}
+button.secondary{background:var(--gray)}
+button.green{background:var(--green)}
+button.orange{background:var(--orange)}
+button.danger{background:var(--red)}
+button.light{background:var(--blue-light);color:var(--blue)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.header{background:var(--blue);color:white;padding:16px}
+.headerRow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.header h1{margin:0;font-size:22px}
+.header p{margin:6px 0 0;font-size:13px;opacity:.9}
+.page{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;padding:16px}
+.panel{background:white;border-radius:16px;box-shadow:0 2px 12px #0001;overflow:hidden}
+.calendarTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:white;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.calendarTop h2{margin:0;font-size:20px;text-transform:capitalize}
+.calendarNav{display:flex;gap:8px;flex-wrap:wrap}
+.weekdays,.calendarGrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.weekdays{background:var(--blue-light);border-bottom:1px solid var(--border)}
+.weekdays div{padding:10px 4px;text-align:center;font-size:12px;font-weight:800;color:var(--blue)}
+.calendarGrid{background:var(--border);gap:1px}
+.day{position:relative;min-height:118px;background:white;padding:8px;cursor:pointer;overflow:hidden}
+.day:hover{outline:3px solid #90caf9;z-index:1}
+.day.outside{background:#f8fafc;color:#98a2b3}
+.day.today{box-shadow:inset 0 0 0 3px var(--blue)}
+.day.selected{box-shadow:inset 0 0 0 3px var(--orange)}
+.day.has-work.unpaid.past{background:var(--red-light)}
+.day.has-work.paid{background:var(--green-light)}
+.day.has-work.future-unpaid{background:#eaf3ff}
+.dayNumber{font-weight:800;font-size:14px}
+.dayBadge{display:block;margin-top:6px;padding:5px 6px;border-radius:7px;background:#fff;border:1px solid #d0d5dd;font-size:11px;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.dayBadge strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dayBadge.paid{border-color:#81c784}
+.dayBadge.unpaid{border-color:#ef9a9a}
+.dayTotal{margin-top:5px;font-size:11px;font-weight:800}
+.legend{display:flex;gap:12px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--border);font-size:12px;color:#475467}
+.legendItem{display:flex;align-items:center;gap:6px}
+.dot{width:14px;height:14px;border-radius:4px;border:1px solid #bbb}
+.dot.paid{background:var(--green-light)}
+.dot.unpaid{background:var(--red-light)}
+.dot.future{background:#eaf3ff}
+.sidebar{display:flex;flex-direction:column;gap:16px}
+.sideSection{padding:16px}
+.sideSection h2,.sideSection h3{margin:0 0 12px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}
+.field label{font-size:13px;font-weight:800;color:#344054}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px;border:1px solid #cfd8e3;border-radius:10px;font:inherit;background:white
+}
+.field textarea{min-height:95px;resize:vertical}
+.checkRow{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #cfd8e3;border-radius:10px;margin-bottom:12px}
+.checkRow input{width:20px;height:20px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{flex:1}
+.status{padding:10px 12px;border-radius:10px;background:#f8fafc;color:var(--gray);font-size:12px;margin-bottom:12px}
+.status.error{background:var(--red-light);color:var(--red)}
+.summaryGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.summaryCard{padding:12px;border:1px solid var(--border);border-radius:12px;background:#fafcff}
+.summaryCard span{display:block;font-size:12px;color:var(--gray)}
+.summaryCard strong{display:block;margin-top:4px;font-size:18px}
+.summaryCard.full{grid-column:1/-1}
+.selectedDate{font-weight:800;color:var(--blue);margin-bottom:12px}
+.small{font-size:12px;color:var(--gray);line-height:1.4}
+.entryList{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.entryItem{padding:9px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer}
+.entryItem.active{border-color:var(--orange);background:#fff8e1}
+.entryItemTitle{font-weight:800}
+.entryItemMeta{font-size:12px;color:var(--gray);margin-top:3px}
+.empty{text-align:center;color:var(--gray);padding:18px 8px}
+@media(max-width:950px){
+  .page{grid-template-columns:1fr}
+  .sidebar{
+    grid-row:2;
+    display:flex;
+    flex-direction:column;
+  }
+  .sidebar .panel:first-child{order:1}
+  .sidebar .panel:last-child{order:2}
+  .day{min-height:95px;padding:6px}
+  .dayBadge{font-size:10px}
+}
+@media(max-width:600px){
+  .page{padding:8px;gap:8px}
+  .panel{border-radius:12px}
+  .header{padding:12px}
+  .calendarTop{padding:10px}
+  .calendarTop h2{font-size:17px;width:100%;text-align:center}
+  .calendarNav{width:100%}
+  .calendarNav button{flex:1;padding:9px 5px}
+  .weekdays div{font-size:10px;padding:8px 1px}
+  .day{min-height:76px;padding:4px}
+  .dayNumber{font-size:12px}
+  .dayBadge{padding:3px;font-size:9px;margin-top:3px}
+  .dayBadge strong{display:none}
+  .dayTotal{font-size:9px}
+}
+</style>
+</head>
+
+<body>
+<header class="header">
+  <div class="headerRow">
+    <div>
+      <h1>Calendrier des tournées</h1>
+      <p>Jours travaillés, chiffre d’affaires et suivi des paiements.</p>
+    </div>
+    <button class="secondary" onclick="window.location.href='index.html'">← Retour aux tournées</button>
+  </div>
+</header>
+
+<main class="page">
+  <section class="panel">
+    <div class="calendarTop">
+      <div class="calendarNav">
+        <button class="light" onclick="changeMonth(-1)">← Mois précédent</button>
+        <button class="light" onclick="goToday()">Aujourd’hui</button>
+        <button class="light" onclick="changeMonth(1)">Mois suivant →</button>
+      </div>
+      <h2 id="monthTitle"></h2>
+    </div>
+
+    <div class="weekdays">
+      <div>Lun.</div><div>Mar.</div><div>Mer.</div><div>Jeu.</div>
+      <div>Ven.</div><div>Sam.</div><div>Dim.</div>
+    </div>
+    <div id="calendarGrid" class="calendarGrid"></div>
+
+    <div class="legend">
+      <div class="legendItem"><span class="dot paid"></span> Travaillée et payée</div>
+      <div class="legendItem"><span class="dot unpaid"></span> Passée et non payée</div>
+      <div class="legendItem"><span class="dot future"></span> Prévue / non payée</div>
+    </div>
+  </section>
+
+  <aside class="sidebar">
+    <section class="panel sideSection">
+      <h2>Saisie d’une journée</h2>
+      <div id="status" class="status">Chargement…</div>
+
+      <div class="field">
+        <label for="tourSelect">Tournée travaillée</label>
+        <select id="tourSelect"></select>
+      </div>
+
+      <div id="selectedDateLabel" class="selectedDate">Clique sur un jour du calendrier.</div>
+
+      <div class="field">
+        <label for="revenue">Chiffre d’affaires (€)</label>
+        <input id="revenue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ex : 320,82">
+      </div>
+
+      <label class="checkRow">
+        <input id="isPaid" type="checkbox">
+        <span><strong>Journée payée</strong><br><span class="small">Décoche si le règlement est encore attendu.</span></span>
+      </label>
+
+      <div class="field">
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Remplacement, matin/soir, remarques…"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" class="green" onclick="saveWorkDay()" disabled>Enregistrer</button>
+        <button id="newBtn" class="light" onclick="newEntry()" disabled>Nouvelle ligne</button>
+        <button id="deleteBtn" class="danger" onclick="deleteWorkDay()" disabled>Supprimer</button>
+      </div>
+
+      <div id="dayEntries" class="entryList"></div>
+    </section>
+
+    <section class="panel sideSection">
+      <h3>Résumé du mois</h3>
+      <div class="summaryGrid">
+        <div class="summaryCard">
+          <span>Jours travaillés</span>
+          <strong id="sumDays">0</strong>
+        </div>
+        <div class="summaryCard">
+          <span>Enregistrements</span>
+          <strong id="sumEntries">0</strong>
+        </div>
+        <div class="summaryCard">
+          <span>Chiffre d’affaires</span>
+          <strong id="sumRevenue">0,00 €</strong>
+        </div>
+        <div class="summaryCard">
+          <span>Déjà payé</span>
+          <strong id="sumPaid">0,00 €</strong>
+        </div>
+        <div class="summaryCard full">
+          <span>Reste à payer</span>
+          <strong id="sumUnpaid">0,00 €</strong>
+        </div>
+      </div>
+    </section>
+  </aside>
+</main>
+
+<script>
+const SUPABASE_URL = "https://iybjtvwdnqnebuexesiz.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml5Ymp0dndkbnFuZWJ1ZXhlc2l6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDEwNjgsImV4cCI6MjA5MTU3NzA2OH0.dAImywya67QbKj1dCR3GZg4p24jxPPvQi5wGkJvdNLk";
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const $ = id => document.getElementById(id);
+
+let tours = [];
+let workDays = [];
+let viewDate = new Date();
+viewDate.setDate(1);
+let selectedDate = "";
+let editingId = null;
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function isoLocal(date){
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+}
+function parseIsoDate(iso){
+  const [y,m,d] = iso.split("-").map(Number);
+  return new Date(y,m-1,d);
+}
+function todayIso(){ return isoLocal(new Date()); }
+function money(value){
+  return new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR"}).format(Number(value || 0));
+}
+function setStatus(message, error=false){
+  $("status").textContent = message;
+  $("status").className = "status" + (error ? " error" : "");
+}
+function selectedTourId(){ return $("tourSelect").value || ""; }
+function tourName(id){ return tours.find(t => t.id === id)?.name || "Tournée"; }
+
+async function init(){
+  await loadTours();
+  await loadMonth();
+  selectDate(todayIso());
+}
+
+async function loadTours(){
+  const { data, error } = await db
+    .from("tours")
+    .select("id,name,is_active")
+    .eq("is_active", true)
+    .order("name", {ascending:true});
+
+  if(error){
+    setStatus("Erreur chargement des tournées : " + error.message, true);
+    return;
+  }
+
+  tours = data || [];
+  const select = $("tourSelect");
+  select.innerHTML = "";
+
+  tours.forEach(t => {
+    const option = document.createElement("option");
+    option.value = t.id;
+    option.textContent = t.name;
+    select.appendChild(option);
+  });
+
+  const remembered = localStorage.getItem("current_tour_id");
+  if(remembered && tours.some(t => t.id === remembered)){
+    select.value = remembered;
+  }
+
+  select.onchange = () => {
+    localStorage.setItem("current_tour_id", select.value);
+    editingId = null;
+    fillEditorForSelectedTour();
+  };
+
+  if(!tours.length){
+    setStatus("Aucune tournée active trouvée.", true);
+  }
+}
+
+function monthBounds(){
+  const start = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+  const end = new Date(viewDate.getFullYear(), viewDate.getMonth()+1, 1);
+  return {start:isoLocal(start), end:isoLocal(end)};
+}
+
+async function loadMonth(){
+  const {start,end} = monthBounds();
+  setStatus("Chargement du mois…");
+
+  const { data, error } = await db
+    .from("work_days")
+    .select("id,work_date,tour_id,revenue,is_paid,notes,created_at,updated_at")
+    .gte("work_date", start)
+    .lt("work_date", end)
+    .order("work_date", {ascending:true})
+    .order("created_at", {ascending:true});
+
+  if(error){
+    workDays = [];
+    renderCalendar();
+    updateSummary();
+    setStatus("Erreur Supabase : " + error.message, true);
+    return;
+  }
+
+  workDays = data || [];
+  renderCalendar();
+  updateSummary();
+  setStatus(workDays.length + " enregistrement(s) chargé(s).");
+}
+
+function changeMonth(delta){
+  viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+delta, 1);
+  selectedDate = "";
+  editingId = null;
+  clearEditor();
+  loadMonth();
+}
+
+function goToday(){
+  const now = new Date();
+  viewDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  loadMonth().then(() => selectDate(todayIso()));
+}
+
+function renderCalendar(){
+  const title = new Intl.DateTimeFormat("fr-FR",{month:"long",year:"numeric"}).format(viewDate);
+  $("monthTitle").textContent = title;
+
+  const grid = $("calendarGrid");
+  grid.innerHTML = "";
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const first = new Date(year,month,1);
+  const mondayOffset = (first.getDay()+6)%7;
+  const start = new Date(year,month,1-mondayOffset);
+
+  for(let i=0;i<42;i++){
+    const date = new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
+    const iso = isoLocal(date);
+    const entries = workDays.filter(x => x.work_date === iso);
+    const isOutside = date.getMonth() !== month;
+    const isPast = iso < todayIso();
+    const hasPaid = entries.some(x => x.is_paid);
+    const hasUnpaid = entries.some(x => !x.is_paid);
+    const total = entries.reduce((s,x)=>s+Number(x.revenue||0),0);
+
+    const day = document.createElement("div");
+    let classes = ["day"];
+    if(isOutside) classes.push("outside");
+    if(iso === todayIso()) classes.push("today");
+    if(iso === selectedDate) classes.push("selected");
+    if(entries.length) classes.push("has-work");
+    if(entries.length && entries.every(x=>x.is_paid)) classes.push("paid");
+    else if(entries.length && hasUnpaid && isPast) classes.push("unpaid","past");
+    else if(entries.length && hasUnpaid) classes.push("future-unpaid");
+    day.className = classes.join(" ");
+    day.onclick = () => {
+      if(isOutside){
+        viewDate = new Date(date.getFullYear(),date.getMonth(),1);
+        loadMonth().then(()=>selectDate(iso));
+      }else{
+        selectDate(iso);
+      }
+    };
+
+    let html = `<div class="dayNumber">${date.getDate()}</div>`;
+    entries.slice(0,3).forEach(entry => {
+      html += `<span class="dayBadge ${entry.is_paid ? "paid" : "unpaid"}">
+        <strong>${escapeHtml(tourName(entry.tour_id))}</strong>
+        ${money(entry.revenue)} ${entry.is_paid ? "✓" : "•"}
+      </span>`;
+    });
+    if(entries.length > 3){
+      html += `<span class="dayBadge">+ ${entries.length-3} autre(s)</span>`;
+    }
+    if(entries.length){
+      html += `<div class="dayTotal">Total : ${money(total)}</div>`;
+    }
+    day.innerHTML = html;
+    grid.appendChild(day);
+  }
+}
+
+function escapeHtml(value){
+  return String(value ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function selectDate(iso){
+  selectedDate = iso;
+  editingId = null;
+  const date = parseIsoDate(iso);
+  $("selectedDateLabel").textContent =
+    new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
+  $("saveBtn").disabled = false;
+  $("newBtn").disabled = false;
+  fillEditorForSelectedTour();
+  renderCalendar();
+}
+
+function dayEntries(){
+  return workDays.filter(x => x.work_date === selectedDate);
+}
+
+function fillEditorForSelectedTour(){
+  if(!selectedDate){
+    clearEditor();
+    return;
+  }
+
+  const tourId = selectedTourId();
+  const existing = dayEntries().find(x => x.tour_id === tourId);
+
+  if(existing){
+    editingId = existing.id;
+    $("revenue").value = existing.revenue ?? "";
+    $("isPaid").checked = !!existing.is_paid;
+    $("notes").value = existing.notes || "";
+    $("deleteBtn").disabled = false;
+  }else{
+    editingId = null;
+    $("revenue").value = "";
+    $("isPaid").checked = false;
+    $("notes").value = "";
+    $("deleteBtn").disabled = true;
+  }
+
+  renderDayEntries();
+}
+
+function newEntry(){
+  editingId = null;
+  $("revenue").value = "";
+  $("isPaid").checked = false;
+  $("notes").value = "";
+  $("deleteBtn").disabled = true;
+  renderDayEntries();
+}
+
+function clearEditor(){
+  $("selectedDateLabel").textContent = "Clique sur un jour du calendrier.";
+  $("revenue").value = "";
+  $("isPaid").checked = false;
+  $("notes").value = "";
+  $("saveBtn").disabled = true;
+  $("newBtn").disabled = true;
+  $("deleteBtn").disabled = true;
+  $("dayEntries").innerHTML = "";
+}
+
+function renderDayEntries(){
+  const box = $("dayEntries");
+  const entries = dayEntries();
+  box.innerHTML = "<h3>Enregistrements du jour</h3>";
+
+  if(!entries.length){
+    box.innerHTML += '<div class="empty">Aucune tournée enregistrée ce jour.</div>';
+    return;
+  }
+
+  entries.forEach(entry => {
+    const div = document.createElement("div");
+    div.className = "entryItem" + (entry.id === editingId ? " active" : "");
+    div.innerHTML = `
+      <div class="entryItemTitle">${escapeHtml(tourName(entry.tour_id))}</div>
+      <div class="entryItemMeta">${money(entry.revenue)} — ${entry.is_paid ? "Payée" : "Non payée"}</div>`;
+    div.onclick = () => {
+      $("tourSelect").value = entry.tour_id;
+      editingId = entry.id;
+      $("revenue").value = entry.revenue ?? "";
+      $("isPaid").checked = !!entry.is_paid;
+      $("notes").value = entry.notes || "";
+      $("deleteBtn").disabled = false;
+      localStorage.setItem("current_tour_id", entry.tour_id);
+      renderDayEntries();
+    };
+    box.appendChild(div);
+  });
+}
+
+async function saveWorkDay(){
+  const tourId = selectedTourId();
+  if(!selectedDate){ alert("Choisis une date."); return; }
+  if(!tourId){ alert("Choisis une tournée."); return; }
+
+  const rawRevenue = String($("revenue").value || "0").replace(",", ".");
+  const revenue = Number(rawRevenue);
+  if(!Number.isFinite(revenue) || revenue < 0){
+    alert("Le chiffre d’affaires n’est pas valide.");
+    return;
+  }
+
+  const payload = {
+    work_date:selectedDate,
+    tour_id:tourId,
+    revenue:Math.round(revenue*100)/100,
+    is_paid:$("isPaid").checked,
+    notes:$("notes").value.trim(),
+    updated_at:new Date().toISOString()
+  };
+
+  setStatus("Enregistrement…");
+
+  let result;
+  if(editingId){
+    result = await db.from("work_days").update(payload).eq("id", editingId).select().single();
+  }else{
+    result = await db.from("work_days").insert(payload).select().single();
+  }
+
+  if(result.error){
+    if(result.error.code === "23505"){
+      setStatus("Cette tournée existe déjà pour ce jour. Sélectionne-la dans la liste pour la modifier.", true);
+    }else{
+      setStatus("Erreur d’enregistrement : " + result.error.message, true);
+    }
+    return;
+  }
+
+  editingId = result.data.id;
+  await loadMonth();
+  selectDate(selectedDate);
+  setStatus("Journée enregistrée.");
+}
+
+async function deleteWorkDay(){
+  if(!editingId) return;
+  if(!confirm("Supprimer cet enregistrement ?")) return;
+
+  const {error} = await db.from("work_days").delete().eq("id",editingId);
+  if(error){
+    setStatus("Erreur suppression : " + error.message, true);
+    return;
+  }
+
+  editingId = null;
+  await loadMonth();
+  selectDate(selectedDate);
+  setStatus("Enregistrement supprimé.");
+}
+
+function updateSummary(){
+  const uniqueDays = new Set(workDays.map(x=>x.work_date)).size;
+  const revenue = workDays.reduce((s,x)=>s+Number(x.revenue||0),0);
+  const paid = workDays.filter(x=>x.is_paid).reduce((s,x)=>s+Number(x.revenue||0),0);
+  const unpaid = workDays.filter(x=>!x.is_paid).reduce((s,x)=>s+Number(x.revenue||0),0);
+
+  $("sumDays").textContent = uniqueDays;
+  $("sumEntries").textContent = workDays.length;
+  $("sumRevenue").textContent = money(revenue);
+  $("sumPaid").textContent = money(paid);
+  $("sumUnpaid").textContent = money(unpaid);
+}
+
+init();
+</script>
+</body>
+</html>
+
