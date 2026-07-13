@@ -109,6 +109,7 @@ button.light{background:#eef4fb;color:#1769aa}
   <label for="tourSelect">Tournée</label>
   <select id="tourSelect"></select>
   <button class="green" onclick="openTourForm()">+ Tournée</button>
+  <button class="orange" onclick="window.location.href='calendrier.html'">📅 Calendrier</button>
   <button class="secondary" onclick="reloadAll()">Recharger</button>
 </div>
 
@@ -429,6 +430,7 @@ function renderPatients(){
         </label>
       </div>
       <div class="cardActions">
+        <button class="goBtn" onclick="goToPatient('${p.id}')">🚗 Aller</button>
         <button onclick="editPatient('${p.id}')">Modifier</button>
         <button class="danger" onclick="deletePatient('${p.id}')">Supprimer</button>
       </div>`;
@@ -978,21 +980,47 @@ async function saveDailyRoute(){
     return;
   }
 
-  const payload = {
-    tour_id: currentTourId,
-    route_name: name,
-    selected_patient_ids: ids,
-    updated_at: new Date().toISOString()
-  };
-
-  // Upsert grâce à la contrainte unique (tour_id, route_name)
-  const { error } = await db
+  // Version robuste : pas besoin de contrainte UNIQUE / ON CONFLICT.
+  // On cherche d’abord si cette tournée type existe déjà pour cette tournée.
+  const { data: existing, error: searchError } = await db
     .from("daily_routes")
-    .upsert(payload, { onConflict: "tour_id,route_name" });
+    .select("id")
+    .eq("tour_id", currentTourId)
+    .eq("route_name", name)
+    .maybeSingle();
 
-  if(error){
-    alert("Erreur sauvegarde tournée type : " + error.message);
+  if(searchError){
+    alert("Erreur recherche tournée type : " + searchError.message);
     return;
+  }
+
+  if(existing && existing.id){
+    const { error: updateError } = await db
+      .from("daily_routes")
+      .update({
+        selected_patient_ids: ids,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", existing.id);
+
+    if(updateError){
+      alert("Erreur mise à jour tournée type : " + updateError.message);
+      return;
+    }
+  }else{
+    const { error: insertError } = await db
+      .from("daily_routes")
+      .insert({
+        tour_id: currentTourId,
+        route_name: name,
+        selected_patient_ids: ids,
+        updated_at: new Date().toISOString()
+      });
+
+    if(insertError){
+      alert("Erreur sauvegarde tournée type : " + insertError.message);
+      return;
+    }
   }
 
   closeDailyRouteForm();
