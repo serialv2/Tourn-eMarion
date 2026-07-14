@@ -89,6 +89,15 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .entryItemTitle{font-weight:800}
 .entryItemMeta{font-size:12px;color:var(--gray);margin-top:3px}
 .empty{text-align:center;color:var(--gray);padding:18px 8px}
+
+.formOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+.formOverlay.open{display:flex}
+.formModal{width:100%;max-width:520px;max-height:92vh;overflow:auto;background:white;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.formModalHeader{background:var(--blue);color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:2}
+.formModalHeader h2{margin:0;font-size:19px}
+.formModalHeader button{background:rgba(255,255,255,.18)}
+.formModalContent{padding:16px}
+
 @media(max-width:950px){
   .page{grid-template-columns:1fr}
   .sidebar{
@@ -156,38 +165,17 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
   <aside class="sidebar">
     <section class="panel sideSection">
-      <h2>Saisie d’une journée</h2>
-      <div id="status" class="status">Chargement…</div>
-
-      <div class="field">
+      <h2>Saisie rapide</h2>
+      <div class="small">
+        Sélectionne une tournée, puis clique directement sur un jour du calendrier.
+        Le formulaire s’ouvrira automatiquement. Si cette journée existe déjà pour la tournée choisie,
+        les champs seront préremplis pour une simple mise à jour.
+      </div>
+      <div class="field" style="margin-top:14px">
         <label for="tourSelect">Tournée travaillée</label>
         <select id="tourSelect"></select>
       </div>
-
-      <div id="selectedDateLabel" class="selectedDate">Clique sur un jour du calendrier.</div>
-
-      <div class="field">
-        <label for="revenue">Chiffre d’affaires (€)</label>
-        <input id="revenue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ex : 320,82">
-      </div>
-
-      <label class="checkRow">
-        <input id="isPaid" type="checkbox">
-        <span><strong>Journée payée</strong><br><span class="small">Décoche si le règlement est encore attendu.</span></span>
-      </label>
-
-      <div class="field">
-        <label for="notes">Notes</label>
-        <textarea id="notes" placeholder="Remplacement, matin/soir, remarques…"></textarea>
-      </div>
-
-      <div class="actions">
-        <button id="saveBtn" class="green" onclick="saveWorkDay()" disabled>Enregistrer</button>
-        <button id="newBtn" class="light" onclick="newEntry()" disabled>Nouvelle ligne</button>
-        <button id="deleteBtn" class="danger" onclick="deleteWorkDay()" disabled>Supprimer</button>
-      </div>
-
-      <div id="dayEntries" class="entryList"></div>
+      <div id="status" class="status">Chargement…</div>
     </section>
 
     <section class="panel sideSection">
@@ -217,6 +205,40 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </section>
   </aside>
 </main>
+
+<div id="workDayOverlay" class="formOverlay">
+  <div class="formModal">
+    <div class="formModalHeader">
+      <h2 id="formTitle">Journée travaillée</h2>
+      <button onclick="closeWorkDayForm()">Fermer</button>
+    </div>
+    <div class="formModalContent">
+      <div id="selectedDateLabel" class="selectedDate"></div>
+      <div class="field">
+        <label for="modalTourSelect">Tournée travaillée</label>
+        <select id="modalTourSelect"></select>
+      </div>
+      <div class="field">
+        <label for="revenue">Chiffre d’affaires (€)</label>
+        <input id="revenue" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Ex : 320,82">
+      </div>
+      <label class="checkRow">
+        <input id="isPaid" type="checkbox">
+        <span><strong>Journée payée</strong><br><span class="small">Décoche si le règlement est encore attendu.</span></span>
+      </label>
+      <div class="field">
+        <label for="notes">Notes</label>
+        <textarea id="notes" placeholder="Remplacement, matin/soir, remarques…"></textarea>
+      </div>
+      <div class="actions">
+        <button id="saveBtn" class="green" onclick="saveWorkDay()">Enregistrer</button>
+        <button id="deleteBtn" class="danger" onclick="deleteWorkDay()" disabled>Supprimer</button>
+      </div>
+      <div id="dayEntries" class="entryList"></div>
+    </div>
+  </div>
+</div>
+
 
 <script>
 const SUPABASE_URL = "https://iybjtvwdnqnebuexesiz.supabase.co";
@@ -248,13 +270,16 @@ function setStatus(message, error=false){
   $("status").textContent = message;
   $("status").className = "status" + (error ? " error" : "");
 }
-function selectedTourId(){ return $("tourSelect").value || ""; }
+function selectedTourId(){
+  const modal = $("modalTourSelect");
+  if(modal && $("workDayOverlay").classList.contains("open")) return modal.value || "";
+  return $("tourSelect").value || "";
+}
 function tourName(id){ return tours.find(t => t.id === id)?.name || "Tournée"; }
 
 async function init(){
   await loadTours();
   await loadMonth();
-  selectDate(todayIso());
 }
 
 async function loadTours(){
@@ -273,20 +298,37 @@ async function loadTours(){
   const select = $("tourSelect");
   select.innerHTML = "";
 
+  const modalSelect = $("modalTourSelect");
+  modalSelect.innerHTML = "";
+
   tours.forEach(t => {
     const option = document.createElement("option");
     option.value = t.id;
     option.textContent = t.name;
     select.appendChild(option);
+
+    const modalOption = document.createElement("option");
+    modalOption.value = t.id;
+    modalOption.textContent = t.name;
+    modalSelect.appendChild(modalOption);
   });
 
   const remembered = localStorage.getItem("current_tour_id");
   if(remembered && tours.some(t => t.id === remembered)){
     select.value = remembered;
+    modalSelect.value = remembered;
+  }else if(select.value){
+    modalSelect.value = select.value;
   }
 
   select.onchange = () => {
     localStorage.setItem("current_tour_id", select.value);
+    modalSelect.value = select.value;
+  };
+
+  modalSelect.onchange = () => {
+    select.value = modalSelect.value;
+    localStorage.setItem("current_tour_id", modalSelect.value);
     editingId = null;
     fillEditorForSelectedTour();
   };
@@ -339,7 +381,9 @@ function changeMonth(delta){
 function goToday(){
   const now = new Date();
   viewDate = new Date(now.getFullYear(), now.getMonth(), 1);
-  loadMonth().then(() => selectDate(todayIso()));
+  selectedDate = "";
+  editingId = null;
+  loadMonth();
 }
 
 function renderCalendar(){
@@ -417,9 +461,9 @@ function selectDate(iso){
   const date = parseIsoDate(iso);
   $("selectedDateLabel").textContent =
     new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
-  $("saveBtn").disabled = false;
-  $("newBtn").disabled = false;
+  $("modalTourSelect").value = $("tourSelect").value;
   fillEditorForSelectedTour();
+  $("workDayOverlay").classList.add("open");
   renderCalendar();
 }
 
@@ -462,13 +506,15 @@ function newEntry(){
   renderDayEntries();
 }
 
+function closeWorkDayForm(){
+  $("workDayOverlay").classList.remove("open");
+}
+
 function clearEditor(){
-  $("selectedDateLabel").textContent = "Clique sur un jour du calendrier.";
+  $("selectedDateLabel").textContent = "";
   $("revenue").value = "";
   $("isPaid").checked = false;
   $("notes").value = "";
-  $("saveBtn").disabled = true;
-  $("newBtn").disabled = true;
   $("deleteBtn").disabled = true;
   $("dayEntries").innerHTML = "";
 }
@@ -544,7 +590,8 @@ async function saveWorkDay(){
 
   editingId = result.data.id;
   await loadMonth();
-  selectDate(selectedDate);
+  fillEditorForSelectedTour();
+  renderCalendar();
   setStatus("Journée enregistrée.");
 }
 
@@ -560,7 +607,8 @@ async function deleteWorkDay(){
 
   editingId = null;
   await loadMonth();
-  selectDate(selectedDate);
+  fillEditorForSelectedTour();
+  renderCalendar();
   setStatus("Enregistrement supprimé.");
 }
 
@@ -576,6 +624,10 @@ function updateSummary(){
   $("sumPaid").textContent = money(paid);
   $("sumUnpaid").textContent = money(unpaid);
 }
+
+$("workDayOverlay").addEventListener("click", e => {
+  if(e.target === e.currentTarget) closeWorkDayForm();
+});
 
 init();
 </script>
