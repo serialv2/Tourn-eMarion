@@ -67,6 +67,7 @@ button.light{background:#eef4fb;color:#1769aa}
 .field.full{grid-column:1/-1}
 .field label{font-size:13px;font-weight:700;color:#344054}
 .field input,.field textarea{padding:11px;border:1px solid #cfd8e3;border-radius:10px;font-size:14px;font-family:Arial}
+.field input[type="color"]{height:46px;padding:4px;cursor:pointer}
 .field textarea{min-height:80px;resize:vertical}
 .formButtons{padding:14px 16px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 
@@ -192,7 +193,9 @@ button.light{background:#eef4fb;color:#1769aa}
   <div class="box">
     <h2>Nouvelle tournée</h2>
     <div class="formContent">
-      <div class="field full"><label>Nom</label><input id="newTourName" placeholder="Ex : Saint-Saulve"></div>
+      <div class="field full"><label>Nom</label><input id="newTourName" placeholder="Ex : Saint-Saulve" oninput="suggestTourShortName()"></div>
+      <div class="field"><label>Abréviation (3 caractères)</label><input id="newTourShortName" maxlength="3" placeholder="Ex : COR" style="text-transform:uppercase"></div>
+      <div class="field"><label>Couleur</label><input id="newTourColor" type="color" value="#7c3aed"></div>
       <div class="field full"><label>Description</label><input id="newTourDescription"></div>
     </div>
     <div class="formButtons">
@@ -318,7 +321,7 @@ async function loadTours(){
   setStatus("Chargement des tournées...");
   const { data, error } = await db
     .from("tours")
-    .select("id,name,description,is_active")
+    .select("id,name,description,short_name,color,is_active")
     .eq("is_active", true)
     .order("name", { ascending: true });
 
@@ -604,8 +607,39 @@ async function deletePatient(id){
   await loadPatients();
 }
 
+function makeTourShortName(name){
+  const cleaned = String(name || "").trim();
+  if(!cleaned) return "";
+  const words = cleaned.split(/\s+/).filter(Boolean);
+  if(words.length >= 2){
+    return words.slice(0,3).map(w => w.charAt(0)).join("").toUpperCase();
+  }
+  return cleaned.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9]/g, "")
+    .slice(0,3)
+    .toUpperCase();
+}
+
+function suggestTourShortName(){
+  const input = $("newTourShortName");
+  if(!input.dataset.edited){
+    input.value = makeTourShortName($("newTourName").value);
+  }
+}
+
 function openTourForm(){
   $("newTourName").value = "";
+  $("newTourShortName").value = "";
+  $("newTourShortName").dataset.edited = "";
+  $("newTourShortName").oninput = () => {
+    $("newTourShortName").dataset.edited = "1";
+    $("newTourShortName").value = $("newTourShortName").value
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0,3);
+  };
+  $("newTourColor").value = "#7c3aed";
   $("newTourDescription").value = "";
   $("tourOverlay").style.display = "flex";
 }
@@ -614,12 +648,17 @@ function closeTourForm(){ $("tourOverlay").style.display = "none"; }
 
 async function saveTour(){
   const name = $("newTourName").value.trim();
+  const shortName = ($("newTourShortName").value.trim() || makeTourShortName(name)).toUpperCase();
+  const color = $("newTourColor").value || "#1769aa";
   const description = $("newTourDescription").value.trim();
 
   if(!name){ alert("Le nom est obligatoire."); return; }
+  if(!shortName){ alert("L’abréviation est obligatoire."); return; }
 
   const { data, error } = await db.from("tours").insert({
     name,
+    short_name: shortName.slice(0,3),
+    color,
     description,
     is_active: true
   }).select().single();
