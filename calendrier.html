@@ -490,12 +490,26 @@ function escapeHtml(value){
 function selectDate(iso){
   selectedDate = iso;
   editingId = null;
+
   const date = parseIsoDate(iso);
   $("selectedDateLabel").textContent =
     new Intl.DateTimeFormat("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(date);
-  $("modalTourSelect").value = $("tourSelect").value;
-  fillEditorForSelectedTour();
+
+  const entries = dayEntries();
+
+  // Si cette date possède déjà un enregistrement, on sélectionne
+  // automatiquement sa tournée dans la liste déroulante.
+  if(entries.length){
+    const firstEntry = entries[0];
+    $("modalTourSelect").value = firstEntry.tour_id;
+    $("tourSelect").value = firstEntry.tour_id;
+    localStorage.setItem("current_tour_id", firstEntry.tour_id);
+  }else{
+    $("modalTourSelect").value = $("tourSelect").value;
+  }
+
   $("workDayOverlay").classList.add("open");
+  fillEditorForSelectedTour();
   renderCalendar();
 }
 
@@ -569,6 +583,7 @@ function renderDayEntries(){
       <div class="entryItemMeta">${money(entry.revenue)} — ${entry.is_paid ? "Payée" : "Non payée"}</div>`;
     div.onclick = () => {
       $("tourSelect").value = entry.tour_id;
+      $("modalTourSelect").value = entry.tour_id;
       editingId = entry.id;
       $("revenue").value = entry.revenue ?? "";
       $("isPaid").checked = !!entry.is_paid;
