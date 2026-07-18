@@ -137,7 +137,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <h1>Calendrier des tournées</h1>
       <p>Jours travaillés, chiffre d’affaires et suivi des paiements.</p>
     </div>
-    <button class="secondary" onclick="window.location.href='index.html'">← Retour aux tournées</button>
+    <button class="secondary" onclick="window.location.href='Marion.html'">← Retour aux tournées</button>
   </div>
 </header>
 
@@ -280,6 +280,9 @@ function selectedTourId(){
 function tourName(id){ return tours.find(t => t.id === id)?.name || "Tournée"; }
 
 function tourShortName(id){
+  const tour = tours.find(t => t.id === id);
+  if(tour?.short_name) return String(tour.short_name).toUpperCase().slice(0,3);
+
   const name = tourName(id).trim();
   const words = name.split(/\s+/).filter(Boolean);
   if(words.length >= 2){
@@ -289,6 +292,9 @@ function tourShortName(id){
 }
 
 function tourColor(id){
+  const tour = tours.find(t => t.id === id);
+  if(tour?.color && /^#[0-9A-Fa-f]{6}$/.test(tour.color)) return tour.color;
+
   const palette = [
     "#7c3aed", "#ea580c", "#0284c7", "#16a34a",
     "#db2777", "#ca8a04", "#0891b2", "#9333ea"
@@ -306,7 +312,7 @@ async function init(){
 async function loadTours(){
   const { data, error } = await db
     .from("tours")
-    .select("id,name,is_active")
+    .select("id,name,short_name,color,is_active")
     .eq("is_active", true)
     .order("name", {ascending:true});
 
