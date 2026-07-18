@@ -110,6 +110,7 @@ button.light{background:#eef4fb;color:#1769aa}
   <label for="tourSelect">Tournée</label>
   <select id="tourSelect"></select>
   <button class="green" onclick="openTourForm()">+ Tournée</button>
+  <button class="orange" onclick="editCurrentTour()">✏️ Modifier tournée</button>
   <button class="orange" onclick="window.location.href='calendrier.html'">📅 Calendrier</button>
   <button class="secondary" onclick="reloadAll()">Recharger</button>
 </div>
@@ -191,7 +192,7 @@ button.light{background:#eef4fb;color:#1769aa}
 
 <div id="tourOverlay" class="overlay">
   <div class="box">
-    <h2>Nouvelle tournée</h2>
+    <h2 id="tourFormTitle">Nouvelle tournée</h2>
     <div class="formContent">
       <div class="field full"><label>Nom</label><input id="newTourName" placeholder="Ex : Saint-Saulve" oninput="suggestTourShortName()"></div>
       <div class="field"><label>Abréviation (3 caractères)</label><input id="newTourShortName" maxlength="3" placeholder="Ex : COR" style="text-transform:uppercase"></div>
@@ -264,6 +265,7 @@ let patients = [];
 let selectedIds = [];
 let currentTourId = localStorage.getItem("current_tour_id") || "";
 let editingPatientId = null;
+let editingTourId = null;
 let currentHouseAddress = "";
 
 const $ = id => document.getElementById(id);
@@ -628,10 +630,7 @@ function suggestTourShortName(){
   }
 }
 
-function openTourForm(){
-  $("newTourName").value = "";
-  $("newTourShortName").value = "";
-  $("newTourShortName").dataset.edited = "";
+function prepareTourShortNameInput(){
   $("newTourShortName").oninput = () => {
     $("newTourShortName").dataset.edited = "1";
     $("newTourShortName").value = $("newTourShortName").value
@@ -639,12 +638,47 @@ function openTourForm(){
       .replace(/[^A-Z0-9]/g, "")
       .slice(0,3);
   };
+}
+
+function openTourForm(){
+  editingTourId = null;
+  $("tourFormTitle").textContent = "Nouvelle tournée";
+  $("newTourName").value = "";
+  $("newTourShortName").value = "";
+  $("newTourShortName").dataset.edited = "";
+  prepareTourShortNameInput();
   $("newTourColor").value = "#7c3aed";
   $("newTourDescription").value = "";
   $("tourOverlay").style.display = "flex";
 }
 
-function closeTourForm(){ $("tourOverlay").style.display = "none"; }
+function editCurrentTour(){
+  if(!currentTourId){
+    alert("Sélectionne d'abord une tournée.");
+    return;
+  }
+
+  const tour = tours.find(t => t.id === currentTourId);
+  if(!tour){
+    alert("Tournée introuvable.");
+    return;
+  }
+
+  editingTourId = tour.id;
+  $("tourFormTitle").textContent = "Modifier la tournée";
+  $("newTourName").value = tour.name || "";
+  $("newTourShortName").value = (tour.short_name || makeTourShortName(tour.name)).toUpperCase();
+  $("newTourShortName").dataset.edited = "1";
+  prepareTourShortNameInput();
+  $("newTourColor").value = tour.color || "#1769aa";
+  $("newTourDescription").value = tour.description || "";
+  $("tourOverlay").style.display = "flex";
+}
+
+function closeTourForm(){
+  $("tourOverlay").style.display = "none";
+  editingTourId = null;
+}
 
 async function saveTour(){
   const name = $("newTourName").value.trim();
@@ -655,17 +689,41 @@ async function saveTour(){
   if(!name){ alert("Le nom est obligatoire."); return; }
   if(!shortName){ alert("L’abréviation est obligatoire."); return; }
 
-  const { data, error } = await db.from("tours").insert({
+  const payload = {
     name,
     short_name: shortName.slice(0,3),
     color,
     description,
     is_active: true
-  }).select().single();
+  };
 
-  if(error){ alert("Erreur création tournée : " + error.message); return; }
+  if(editingTourId){
+    const { error } = await db
+      .from("tours")
+      .update(payload)
+      .eq("id", editingTourId);
 
-  currentTourId = data.id;
+    if(error){
+      alert("Erreur modification tournée : " + error.message);
+      return;
+    }
+
+    currentTourId = editingTourId;
+  }else{
+    const { data, error } = await db
+      .from("tours")
+      .insert(payload)
+      .select()
+      .single();
+
+    if(error){
+      alert("Erreur création tournée : " + error.message);
+      return;
+    }
+
+    currentTourId = data.id;
+  }
+
   localStorage.setItem("current_tour_id", currentTourId);
   closeTourForm();
   await reloadAll();
