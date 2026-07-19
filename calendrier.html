@@ -50,6 +50,23 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .day.has-work.paid{background:var(--green-light)}
 .day.has-work.future-unpaid{background:#eaf3ff}
 .dayNumber{font-weight:800;font-size:14px}
+.positionBadge{
+  position:absolute;top:6px;right:6px;
+  min-width:30px;padding:3px 6px;border-radius:999px;
+  text-align:center;font-size:10px;font-weight:900;letter-spacing:.4px;
+  border:1px solid transparent
+}
+.positionBadge.rh{background:#eef2f6;color:#475467;border-color:#cfd8e3}
+.positionBadge.lj{background:#e8f3ff;color:#1769aa;border-color:#90caf9}
+.positionBadge.n{background:#f1e8ff;color:#6b21a8;border-color:#c4a7e7}
+.baptisteBox{
+  margin-bottom:14px;padding:12px;border:1px solid #cfd8e3;
+  border-radius:12px;background:#f8fafc
+}
+.baptisteBox h3{margin:0 0 8px;font-size:15px;color:#344054}
+.baptisteRow{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+.baptisteRow .field{margin:0}
+.positionHint{font-size:11px;color:var(--gray);margin-top:7px}
 .dayBadge{display:block;margin-top:6px;padding:5px 6px;border-radius:7px;background:#fff;border:1px solid #d0d5dd;font-size:11px;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
 .dayBadge strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tourShort{display:none;font-weight:900;letter-spacing:.4px}
@@ -122,6 +139,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   .weekdays div{font-size:10px;padding:8px 1px}
   .day{min-height:76px;padding:4px}
   .dayNumber{font-size:12px}
+  .positionBadge{top:3px;right:3px;min-width:25px;padding:2px 4px;font-size:8px}
   .dayBadge{padding:3px 4px;font-size:9px;margin-top:3px;border-left-width:4px!important}
   .tourFull{display:none!important}
   .tourShort{display:block;font-size:10px;margin-bottom:1px}
@@ -216,6 +234,24 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
     <div class="formModalContent">
       <div id="selectedDateLabel" class="selectedDate"></div>
+
+      <div class="baptisteBox">
+        <h3>Planning de Baptiste</h3>
+        <div class="baptisteRow">
+          <div class="field">
+            <label for="baptistePosition">Position</label>
+            <select id="baptistePosition">
+              <option value="">Aucune position</option>
+              <option value="RH">RH</option>
+              <option value="LJ">LJ</option>
+              <option value="N">N</option>
+            </select>
+          </div>
+          <button id="savePositionBtn" class="secondary" onclick="saveBaptistePosition()">Enregistrer</button>
+        </div>
+        <div class="positionHint">RH, LJ ou N s’affichera directement dans la case du calendrier.</div>
+      </div>
+
       <div class="field">
         <label for="modalTourSelect">Tournée travaillée</label>
         <select id="modalTourSelect"></select>
@@ -251,6 +287,7 @@ const $ = id => document.getElementById(id);
 
 let tours = [];
 let workDays = [];
+let baptisteSchedule = [];
 let viewDate = new Date();
 viewDate.setDate(1);
 let selectedDate = "";
@@ -375,26 +412,45 @@ async function loadMonth(){
   const {start,end} = monthBounds();
   setStatus("Chargement du mois…");
 
-  const { data, error } = await db
-    .from("work_days")
-    .select("id,work_date,tour_id,revenue,is_paid,notes,created_at,updated_at")
-    .gte("work_date", start)
-    .lt("work_date", end)
-    .order("work_date", {ascending:true})
-    .order("created_at", {ascending:true});
+  const [workResult, scheduleResult] = await Promise.all([
+    db
+      .from("work_days")
+      .select("id,work_date,tour_id,revenue,is_paid,notes,created_at,updated_at")
+      .gte("work_date", start)
+      .lt("work_date", end)
+      .order("work_date", {ascending:true})
+      .order("created_at", {ascending:true}),
+    db
+      .from("baptiste_schedule")
+      .select("id,work_date,position,notes,created_at,updated_at")
+      .gte("work_date", start)
+      .lt("work_date", end)
+      .order("work_date", {ascending:true})
+  ]);
 
-  if(error){
+  if(workResult.error){
     workDays = [];
-    renderCalendar();
-    updateSummary();
-    setStatus("Erreur Supabase : " + error.message, true);
-    return;
+    setStatus("Erreur chargement des journées : " + workResult.error.message, true);
+  }else{
+    workDays = workResult.data || [];
   }
 
-  workDays = data || [];
+  if(scheduleResult.error){
+    baptisteSchedule = [];
+    setStatus("Erreur chargement du planning de Baptiste : " + scheduleResult.error.message, true);
+  }else{
+    baptisteSchedule = scheduleResult.data || [];
+  }
+
   renderCalendar();
   updateSummary();
-  setStatus(workDays.length + " enregistrement(s) chargé(s).");
+
+  if(!workResult.error && !scheduleResult.error){
+    setStatus(
+      workDays.length + " journée(s) et " +
+      baptisteSchedule.length + " position(s) chargée(s)."
+    );
+  }
 }
 
 function changeMonth(delta){
@@ -430,6 +486,7 @@ function renderCalendar(){
     const date = new Date(start.getFullYear(),start.getMonth(),start.getDate()+i);
     const iso = isoLocal(date);
     const entries = workDays.filter(x => x.work_date === iso);
+    const scheduleEntry = baptisteSchedule.find(x => x.work_date === iso);
     const isOutside = date.getMonth() !== month;
     const isPast = iso < todayIso();
     const hasPaid = entries.some(x => x.is_paid);
@@ -456,6 +513,10 @@ function renderCalendar(){
     };
 
     let html = `<div class="dayNumber">${date.getDate()}</div>`;
+    if(scheduleEntry?.position){
+      const positionClass = scheduleEntry.position.toLowerCase();
+      html += `<span class="positionBadge ${positionClass}" title="Position de Baptiste : ${escapeHtml(scheduleEntry.position)}">${escapeHtml(scheduleEntry.position)}</span>`;
+    }
     entries.slice(0,3).forEach(entry => {
       const fullName = tourName(entry.tour_id);
       const shortName = tourShortName(entry.tour_id);
@@ -508,6 +569,9 @@ function selectDate(iso){
     $("modalTourSelect").value = $("tourSelect").value;
   }
 
+  const scheduleEntry = baptisteSchedule.find(x => x.work_date === selectedDate);
+  $("baptistePosition").value = scheduleEntry?.position || "";
+
   $("workDayOverlay").classList.add("open");
   fillEditorForSelectedTour();
   renderCalendar();
@@ -548,6 +612,7 @@ function newEntry(){
   $("revenue").value = "";
   $("isPaid").checked = false;
   $("notes").value = "";
+  $("baptistePosition").value = "";
   $("deleteBtn").disabled = true;
   renderDayEntries();
 }
@@ -594,6 +659,57 @@ function renderDayEntries(){
     };
     box.appendChild(div);
   });
+}
+
+async function saveBaptistePosition(){
+  if(!selectedDate){
+    alert("Choisis une date.");
+    return;
+  }
+
+  const position = $("baptistePosition").value;
+  const button = $("savePositionBtn");
+  button.disabled = true;
+  button.textContent = "Enregistrement…";
+
+  try{
+    const existing = baptisteSchedule.find(x => x.work_date === selectedDate);
+
+    if(!position){
+      if(existing){
+        const { error } = await db
+          .from("baptiste_schedule")
+          .delete()
+          .eq("id", existing.id);
+
+        if(error) throw error;
+      }
+    }else{
+      const payload = {
+        work_date: selectedDate,
+        position,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await db
+        .from("baptiste_schedule")
+        .upsert(payload, { onConflict: "work_date" });
+
+      if(error) throw error;
+    }
+
+    await loadMonth();
+    $("baptistePosition").value = position;
+    renderCalendar();
+    setStatus(position
+      ? "Position de Baptiste enregistrée : " + position
+      : "Position de Baptiste supprimée.");
+  }catch(error){
+    setStatus("Erreur planning Baptiste : " + error.message, true);
+  }finally{
+    button.disabled = false;
+    button.textContent = "Enregistrer";
+  }
 }
 
 async function saveWorkDay(){
