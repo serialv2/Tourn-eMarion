@@ -704,6 +704,7 @@ async function saveBaptistePosition(){
     setStatus(position
       ? "Position de Baptiste enregistrée : " + position
       : "Position de Baptiste supprimée.");
+    closeWorkDayForm();
   }catch(error){
     setStatus("Erreur planning Baptiste : " + error.message, true);
   }finally{
@@ -756,6 +757,7 @@ async function saveWorkDay(){
   fillEditorForSelectedTour();
   renderCalendar();
   setStatus("Journée enregistrée.");
+  closeWorkDayForm();
 }
 
 async function deleteWorkDay(){
