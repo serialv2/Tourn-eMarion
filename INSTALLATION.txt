@@ -1,0 +1,43 @@
+DÉPENSES ET EXPORT EXCEL — TOURNÉE MARION
+
+1. Ouvrir le projet Supabase utilisé par le calendrier :
+   https://supabase.com/dashboard/project/iybjtvwdnqnebuexesiz/sql/new
+2. Copier le contenu de sql/installer_depenses.sql dans le SQL Editor.
+3. Cliquer sur Run. Le résultat doit afficher la table avec RLS activé
+   et quatre règles d’accès. Le script peut être relancé.
+4. Publier les modifications GitHub avec les trois fichiers ensemble :
+   calendrier.html, finance-core.js et calendrier-finances.js.
+5. Recharger le calendrier.
+
+UTILISATION
+
+Choisir le mois avec les flèches. Cliquer sur « Ajouter une dépense »
+ou cliquer sur un jour, puis « Ajouter une dépense à cette date ».
+Saisir la catégorie, le libellé et le montant positif à déduire.
+La date reste dans le mois choisi. Une dépense peut être modifiée
+ou supprimée depuis la liste du mois.
+
+« Exporter Excel [année] » télécharge un fichier .xlsx pour l’année
+affichée : janvier à décembre, puis Total annuel. Les 13 onglets
+sont toujours présents, même pour les mois sans données.
+Les chiffres d’affaires incluent toutes les tournées et les journées
+payées ou non, selon la date de travail saisie dans le calendrier.
+Les dépenses sont rattachées au mois de leur date.
+Le résultat demandé est le CA moins toutes les dépenses et tous les
+prélèvements, y compris le prélèvement salaire.
+Le fichier comporte les détails et des formules recalculables dans Excel.
+Les modifications faites dans Excel ne modifient pas le calendrier.
+
+ACCÈS
+
+Comme demandé, les dépenses sont partagées sans connexion ni code.
+Les visiteurs du site peuvent les lire et les modifier.
+La table des dépenses est distincte des journées et des patients.
+
+VALIDATION
+
+npm ci
+npm test
+
+Le script SQL est fourni pour exécution manuelle : il n’a pas été
+appliqué à la base en ligne depuis cette conversation.
