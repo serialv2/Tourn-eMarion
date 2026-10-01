@@ -107,6 +107,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .entryItemTitle{font-weight:800}
 .entryItemMeta{font-size:12px;color:var(--gray);margin-top:3px}
 .empty{text-align:center;color:var(--gray);padding:18px 8px}
+.expenseItem{padding:12px 0;border-bottom:1px solid var(--border);overflow-wrap:anywhere}
+.expenseItem button{margin-top:8px}
+.expenseItem .small{margin-top:5px}
+#expenseList{max-height:360px;overflow:auto;margin-top:12px}
+#expenseFields{border:0;padding:0;margin:0;min-width:0}
+#expenseFormStatus{color:var(--red);margin:12px 0}
+#financeMonth{text-transform:capitalize;color:var(--blue);font-weight:700;margin-bottom:12px}
 
 .formOverlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
 .formOverlay.open{display:flex}
@@ -221,7 +228,26 @@ button:disabled{opacity:.5;cursor:not-allowed}
           <span>Reste à payer</span>
           <strong id="sumUnpaid">0,00 €</strong>
         </div>
+        <div class="summaryCard full">
+          <span>Dépenses et prélèvements</span>
+          <strong id="sumExpenses">Chargement…</strong>
+        </div>
+        <div class="summaryCard full">
+          <span>Résultat mensuel</span>
+          <strong id="sumResult">Chargement…</strong>
+        </div>
       </div>
+      <p class="small">Résultat = chiffre d’affaires des journées saisies (payées ou non) − dépenses et prélèvements, salaire inclus.</p>
+    </section>
+
+    <section class="panel sideSection">
+      <h2>Dépenses du mois</h2>
+      <div id="financeMonth"></div>
+      <div class="actions"><button id="addExpenseBtn" class="orange" onclick="openExpenseForm()" disabled>Ajouter une dépense</button></div>
+      <div id="expenseList" class="small"></div>
+      <div id="financeStatus" class="status" role="status" aria-live="polite" style="margin-top:12px">Chargement…</div>
+      <button id="exportExcelBtn" class="green" onclick="exportAnnualExcel()">Exporter Excel annuel</button>
+      <p class="small">L’année affichée : 12 onglets mensuels et un total annuel, toutes tournées confondues.</p>
     </section>
   </aside>
 </main>
@@ -234,6 +260,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
     </div>
     <div class="formModalContent">
       <div id="selectedDateLabel" class="selectedDate"></div>
+      <button class="orange" style="margin-bottom:14px" onclick="openExpenseForm(null, true)">Ajouter une dépense à cette date</button>
 
       <div class="baptisteBox">
         <h3>Planning de Baptiste</h3>
@@ -277,6 +304,24 @@ button:disabled{opacity:.5;cursor:not-allowed}
   </div>
 </div>
 
+<div id="expenseOverlay" class="formOverlay" role="dialog" aria-modal="true" aria-labelledby="expenseFormTitle">
+  <div class="formModal">
+    <div class="formModalHeader">
+      <h2 id="expenseFormTitle">Ajouter une dépense</h2>
+      <button id="closeExpenseBtn" onclick="closeExpenseForm()">Fermer</button>
+    </div>
+    <form id="expenseForm" class="formModalContent">
+      <fieldset id="expenseFields">
+        <div class="field"><label for="expenseDate">Date de la dépense</label><input id="expenseDate" type="date" required></div>
+        <div class="field"><label for="expenseCategory">Catégorie</label><select id="expenseCategory" required></select></div>
+        <div class="field"><label for="expenseLabel">Libellé</label><input id="expenseLabel" maxlength="200" placeholder="Ex. Plein de carburant" required></div>
+        <div class="field"><label for="expenseAmount">Montant à déduire (€)</label><input id="expenseAmount" type="number" min="0.01" max="999999999.99" step="0.01" inputmode="decimal" required></div>
+        <div class="actions"><button class="green" type="submit">Enregistrer</button><button id="deleteExpenseBtn" class="danger" type="button" onclick="deleteExpense()" hidden>Supprimer</button></div>
+      </fieldset>
+      <div id="expenseFormStatus" role="alert"></div>
+    </form>
+  </div>
+</div>
 
 <script>
 const SUPABASE_URL = "https://iybjtvwdnqnebuexesiz.supabase.co";
@@ -292,6 +337,8 @@ let viewDate = new Date();
 viewDate.setDate(1);
 let selectedDate = "";
 let editingId = null;
+let monthRevenueReady = false;
+let monthRequest = 0;
 
 function pad(n){ return String(n).padStart(2,"0"); }
 function isoLocal(date){
@@ -342,6 +389,7 @@ function tourColor(id){
 }
 
 async function init(){
+  initFinance();
   await loadTours();
   await loadMonth();
 }
@@ -409,7 +457,14 @@ function monthBounds(){
 }
 
 async function loadMonth(){
+  const request = ++monthRequest;
   const {start,end} = monthBounds();
+  monthRevenueReady = false;
+  workDays = [];
+  baptisteSchedule = [];
+  renderCalendar();
+  updateSummary();
+  const expenseLoad = loadMonthExpenses();
   setStatus("Chargement du mois…");
 
   const [workResult, scheduleResult] = await Promise.all([
@@ -428,11 +483,14 @@ async function loadMonth(){
       .order("work_date", {ascending:true})
   ]);
 
+  if(request !== monthRequest) return;
+
   if(workResult.error){
     workDays = [];
     setStatus("Erreur chargement des journées : " + workResult.error.message, true);
   }else{
     workDays = workResult.data || [];
+    monthRevenueReady = true;
   }
 
   if(scheduleResult.error){
@@ -444,6 +502,8 @@ async function loadMonth(){
 
   renderCalendar();
   updateSummary();
+  await expenseLoad;
+  if(request !== monthRequest) return;
 
   if(!workResult.error && !scheduleResult.error){
     setStatus(
@@ -788,13 +848,16 @@ function updateSummary(){
   $("sumRevenue").textContent = money(revenue);
   $("sumPaid").textContent = money(paid);
   $("sumUnpaid").textContent = money(unpaid);
+  updateFinanceSummary();
 }
 
 $("workDayOverlay").addEventListener("click", e => {
   if(e.target === e.currentTarget) closeWorkDayForm();
 });
 
-init();
 </script>
+<script src="finance-core.js"></script>
+<script src="calendrier-finances.js"></script>
+<script>init();</script>
 </body>
 </html>
