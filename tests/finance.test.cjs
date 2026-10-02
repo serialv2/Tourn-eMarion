@@ -46,9 +46,10 @@ test('13 onglets, limites annuelles, formules, centimes et textes non exécutabl
   assert.equal(jan.getCell('B6').result,660.25);
   assert.equal(jan.getCell('B7').result,-159.95);
   assert.equal(jan.getCell('B7').formula,'B5-B6');
-  assert.equal(jan.getCell('C24').value,'=HYPERLINK("bad")');
-  assert.ok(jan.getCell('A24').value instanceof Date);
-  assert.equal(jan.getCell('D24').value,60.25);
+  const detailRow = 13 + F.categories.length + 3;
+  assert.equal(jan.getCell(`C${detailRow}`).value,'=HYPERLINK("bad")');
+  assert.ok(jan.getCell(`A${detailRow}`).value instanceof Date);
+  assert.equal(jan.getCell(`D${detailRow}`).value,60.25);
   assert.equal(reopened.getWorksheet('Février').getCell('B7').result,0);
   const annual = reopened.getWorksheet('Total annuel');
   assert.equal(annual.getCell('B5').result,550.3);

@@ -4,7 +4,7 @@
   else root.MarionFinance = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
-  const categories = ['Prélèvement salaire', 'Essence', 'Réparations', 'Leasing', 'Assurance', 'Cotisations', 'Matériel', 'Autre'];
+  const categories = ['Prélèvement salaire', 'Essence', 'Réparations', 'Leasing', 'Assurance', 'Cotisations', 'URSSAF', 'CARPIMKO', 'Matériel', 'Autre'];
   const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
   const euro = '#,##0.00 "€";[Red](#,##0.00) "€";0.00 "€"';
   function cents(value) {
@@ -98,7 +98,7 @@
       sheet.getCell('A10').value = 'Résultat = CA − dépenses, salaire inclus.';
       heading(sheet, 12, ['Catégorie', 'Montant à déduire']);
       categories.forEach((category, i) => { sheet.getCell(i + 13, 1).value = category; });
-      const expenseHeader = 23;
+      const expenseHeader = 13 + categories.length + 2;
       heading(sheet, expenseHeader, ['Date', 'Catégorie', 'Libellé', 'Dépense (€)']);
       const expenseStart = expenseHeader + 1;
       costs.forEach((x, i) => {

@@ -153,12 +153,20 @@ async function exportAnnualExcel() {
       Finance.fetchAll(() => db.from('tours').select('id,name').order('id'))
     ]);
     const workbook = Finance.buildWorkbook(ExcelJS, year, work, expenses, allTours);
+    const contributionDefaults = MarionCotisations.prefill(work, expenses);
+    let contributions;
+    try {
+      contributions = await MarionCotisations.estimate({year,...contributionDefaults});
+    } catch(error) {
+      contributions = {error:error.name === 'AbortError' ? 'Le simulateur URSSAF ne répond pas. Réexporter plus tard.' : error.message};
+    }
+    MarionCotisations.appendWorkbook(workbook,year,contributionDefaults,contributions,Finance.categories,Finance.months);
     const bytes = await workbook.xlsx.writeBuffer();
     const url = URL.createObjectURL(new Blob([bytes], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
     const a = document.createElement('a'); a.href = url; a.download = `Tournee_Marion_${year}.xlsx`;
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
-    financeStatus('Fichier Excel ' + year + ' téléchargé : 12 mois et le total annuel.');
+    financeStatus('Fichier Excel ' + year + ' téléchargé : 12 mois et le total annuel.' + (contributions.error ? ' Estimation sociale indisponible : voir le classeur.' : ''));
   } catch(error) { financeStatus('Export annulé : ' + expenseError(error), true); }
   finally { button.disabled = false; }
 }
