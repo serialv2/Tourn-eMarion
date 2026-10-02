@@ -41,3 +41,51 @@ npm test
 
 Le script SQL est fourni pour exécution manuelle : il n’a pas été
 appliqué à la base en ligne depuis cette conversation.
+
+ESTIMATION URSSAF ET CARPIMKO DANS EXCEL UNIQUEMENT
+
+Pour une installation existante, exécuter
+sql/ajouter_categories_cotisations.sql avant de publier la mise à jour.
+Ce script autorise URSSAF et CARPIMKO sans modifier les anciennes dépenses.
+Publier le fichier cotisations.js avec les autres fichiers du calendrier.
+
+L'export Excel calcule les estimations via le moteur officiel URSSAF
+Mon-entreprise (modèle TI intégrant la réforme de l'assiette sociale).
+Aucun résultat d'estimation ni formulaire supplémentaire ne s'affiche
+dans le calendrier. Aucun impôt sur le revenu n'est calculé.
+
+Dans Total annuel : recettes et frais retenus à l'export, assiette sociale,
+estimations URSSAF/CARPIMKO, paiements saisis et reste à provisionner.
+Les cases jaunes permettent de retirer des versements la part qui règle
+d'autres années. Un excédent chez un organisme ne compense pas l'autre.
+Reclasser les anciennes dépenses « Cotisations » en URSSAF ou CARPIMKO.
+
+Chaque mois comporte une provision indicative égale au total annuel
+estimé divisé par douze. Elle ne s'ajoute pas aux dépenses réelles et
+ne se déduit donc pas une seconde fois du résultat mensuel.
+
+L'estimation part de toutes les journées et frais de l'année saisie.
+Elle ne projette pas automatiquement les mois manquants. Compléter les
+données de l'année pour une prévision annuelle complète. Les recettes
+doivent correspondre aux encaissements attendus pour cette année.
+Les prélèvements personnels et toutes les cotisations sociales sont
+exclus des frais de calcul. Vérifier l'usage professionnel et les
+amortissements dans les frais retenus.
+
+Les estimations sont figées au moment de l'export : si recettes ou frais
+sont modifiés dans Excel, les provisions affichent « Réexporter ».
+Les paiements et corrections des cases jaunes restent recalculables.
+Le classeur conserve toujours ses 13 onglets, même si le moteur URSSAF
+est indisponible : le bloc indique alors que l'estimation est indisponible.
+
+Périmètre vérifié : année 2026, PAMC remplaçante exclusivement, frais réels,
+entreprise individuelle à l'IR, activité sur l'année entière en métropole,
+entièrement conventionnée sans dépassement. Pas d'ACRE, exonération,
+indemnités maladie/maternité, revenus étrangers ou conjoint collaborateur.
+CARPIMKO estimée à revenu constant, hors régularisations antérieures.
+Seuls les montants agrégés et hypothèses sont transmis au moteur URSSAF,
+sans patients, noms ni libellés. Aucune connexion ou code n'est ajouté.
+
+Sources :
+https://mon-entreprise.urssaf.fr/api/v1/modeles/ti/evaluate
+https://www.carpimko.com/je-suis-en-activite/cotisations/selon-mes-revenus

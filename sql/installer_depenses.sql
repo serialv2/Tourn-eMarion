@@ -9,7 +9,7 @@ create table if not exists public.marion_expenses (
   expense_date date not null,
   category text not null check (category in (
     'Prélèvement salaire', 'Essence', 'Réparations', 'Leasing',
-    'Assurance', 'Cotisations', 'Matériel', 'Autre'
+    'Assurance', 'Cotisations', 'URSSAF', 'CARPIMKO', 'Matériel', 'Autre'
   )),
   label text not null check (length(btrim(label)) between 1 and 200),
   amount numeric(11,2) not null check (amount > 0 and amount <= 999999999.99),
