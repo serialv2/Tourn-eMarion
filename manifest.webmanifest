@@ -1,0 +1,16 @@
+{
+  "id": "/Tourn-eMarion/",
+  "name": "Tournée Marion",
+  "short_name": "Marion",
+  "description": "Les tournées et le calendrier de Marion.",
+  "lang": "fr",
+  "start_url": "./Marion.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f6fb",
+  "theme_color": "#1769aa",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

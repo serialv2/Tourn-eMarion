@@ -98,6 +98,13 @@ button.light{background:#eef4fb;color:#1769aa}
  .formContent{grid-template-columns:1fr}
 }
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1769aa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Marion">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="install-app.css">
+<script src="install-app.js" defer></script>
 </head>
 
 <body>
@@ -113,6 +120,7 @@ button.light{background:#eef4fb;color:#1769aa}
   <button class="orange" onclick="editCurrentTour()">✏️ Modifier tournée</button>
   <button class="orange" onclick="window.location.href='calendrier.html'">📅 Calendrier</button>
   <button class="secondary" onclick="reloadAll()">Recharger</button>
+  <button type="button" class="install-app-button" data-install-app>Installer l’appli</button>
 </div>
 
 <div class="mobileTabs">
