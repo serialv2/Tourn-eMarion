@@ -89,3 +89,13 @@ sans patients, noms ni libellés. Aucune connexion ou code n'est ajouté.
 Sources :
 https://mon-entreprise.urssaf.fr/api/v1/modeles/ti/evaluate
 https://www.carpimko.com/je-suis-en-activite/cotisations/selon-mes-revenus
+INSTALLER SUR UN TÉLÉPHONE OU UN ORDINATEUR
+
+Le bouton « Installer l’appli » est disponible sur les tournées et le calendrier.
+Chrome / Edge : le bouton ouvre la proposition d’installation si elle est disponible.
+iPhone / iPad : le bouton explique comment ouvrir le site dans Safari puis utiliser
+Partager > Sur l’écran d’accueil > Ajouter (activer « Ouvrir comme app » si proposé).
+L’icône « Marion » ouvre les tournées ; le calendrier reste accessible depuis celles-ci.
+Une connexion Internet reste nécessaire. Aucun changement de base de données requis.
+Les fichiers manifest.webmanifest, install-app.js, install-app.css et le dossier icons
+doivent être publiés avec les pages HTML. Pas de cache hors ligne ni de service worker.

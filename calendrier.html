@@ -153,6 +153,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
   .dayTotal{font-size:9px}
 }
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1769aa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Marion">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="install-app.css">
+<script src="install-app.js" defer></script>
 </head>
 
 <body>
@@ -163,6 +170,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <p>Jours travaillés, chiffre d’affaires et suivi des paiements.</p>
     </div>
     <button class="secondary" onclick="window.location.href='Marion.html'">← Retour aux tournées</button>
+  <button type="button" class="install-app-button" data-install-app>Installer l’appli</button>
   </div>
 </header>
 
