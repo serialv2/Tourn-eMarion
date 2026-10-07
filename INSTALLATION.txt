@@ -5,8 +5,9 @@ DÉPENSES ET EXPORT EXCEL — TOURNÉE MARION
 2. Copier le contenu de sql/installer_depenses.sql dans le SQL Editor.
 3. Cliquer sur Run. Le résultat doit afficher la table avec RLS activé
    et quatre règles d’accès. Le script peut être relancé.
-4. Publier les modifications GitHub avec les trois fichiers ensemble :
-   calendrier.html, finance-core.js et calendrier-finances.js.
+4. Publier les modifications GitHub avec les fichiers ensemble :
+   calendrier.html, finance-core.js, finance-charts.js, cotisations.js
+   et calendrier-finances.js.
 5. Recharger le calendrier.
 
 UTILISATION
@@ -18,7 +19,7 @@ La date reste dans le mois choisi. Une dépense peut être modifiée
 ou supprimée depuis la liste du mois.
 
 « Exporter Excel [année] » télécharge un fichier .xlsx pour l’année
-affichée : janvier à décembre, puis Total annuel. Les 13 onglets
+affichée : janvier à décembre, puis Total annuel et Graphique. Les 14 onglets
 sont toujours présents, même pour les mois sans données.
 Les chiffres d’affaires incluent toutes les tournées et les journées
 payées ou non, selon la date de travail saisie dans le calendrier.
@@ -109,3 +110,18 @@ la moyenne des pourcentages mensuels. Les feuilles mensuelles affichent égaleme
 le pourcentage par catégorie. Un tiret indique que le CA est nul et que le ratio
 ne peut pas être calculé. Les pourcentages peuvent dépasser 100 %.
 Réexporter depuis le calendrier pour obtenir cette présentation.
+
+ONGLET GRAPHIQUE
+
+Deux camemberts Excel modifiables sont liés aux cellules : CA par tournée et
+utilisation du CA (rémunération, catégories de dépenses, montant restant).
+Le second n’affiche pas de parts si les dépenses dépassent le CA ; le déficit
+et les ratios restent visibles. Aucun CA : les camemberts restent vides.
+Les estimations URSSAF/CARPIMKO ne sont pas ajoutées aux dépenses saisies.
+
+Le revenu moyen par jour payé est la somme du CA des lignes marquées payées,
+divisée par le nombre de dates payées distinctes de la tournée. Les jours
+impayés sont exclus ; sans jour payé, le ratio affiche un tiret. Les montants
+sont globalisés. Le regroupement correspond à une remplacée seulement si
+la tournée représente cette infirmière. Après changement des dates ou des
+tournées, refaire un export pour reconstruire les groupes.

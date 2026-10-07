@@ -161,12 +161,28 @@ async function exportAnnualExcel() {
       contributions = {error:error.name === 'AbortError' ? 'Le simulateur URSSAF ne répond pas. Réexporter plus tard.' : error.message};
     }
     MarionCotisations.appendWorkbook(workbook,year,contributionDefaults,contributions,Finance.categories,Finance.months);
-    const bytes = await workbook.xlsx.writeBuffer();
+    const chartPlan = MarionCharts.appendWorkbook(workbook,year,work,allTours,Finance);
+    const JSZip = await loadChartLibrary();
+    const bytes = await MarionCharts.writeBuffer(workbook,chartPlan,JSZip);
     const url = URL.createObjectURL(new Blob([bytes], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
     const a = document.createElement('a'); a.href = url; a.download = `Tournee_Marion_${year}.xlsx`;
     document.body.append(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
-    financeStatus('Fichier Excel ' + year + ' téléchargé : 12 mois et le total annuel.' + (contributions.error ? ' Estimation sociale indisponible : voir le classeur.' : ''));
+    financeStatus('Fichier Excel ' + year + ' téléchargé : 12 mois, total annuel et graphiques.' + (contributions.error ? ' Estimation sociale indisponible : voir le classeur.' : ''));
   } catch(error) { financeStatus('Export annulé : ' + expenseError(error), true); }
   finally { button.disabled = false; }
+}
+let chartLibraryLoading;
+function loadChartLibrary() {
+  if (window.JSZip) return Promise.resolve(window.JSZip);
+  if (chartLibraryLoading) return chartLibraryLoading;
+  chartLibraryLoading = new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src='https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+    const fail=()=>{clearTimeout(timer);script.remove();chartLibraryLoading=null;reject(new Error('Impossible de charger les graphiques Excel. Réessaie.'));};
+    const timer=setTimeout(fail,20000);
+    script.onload=()=>{if(!window.JSZip)return fail();clearTimeout(timer);resolve(window.JSZip);};
+    script.onerror=fail;document.head.append(script);
+  });
+  return chartLibraryLoading;
 }
