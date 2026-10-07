@@ -255,7 +255,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
       <div id="expenseList" class="small"></div>
       <div id="financeStatus" class="status" role="status" aria-live="polite" style="margin-top:12px">Chargement…</div>
       <button id="exportExcelBtn" class="green" onclick="exportAnnualExcel()">Exporter Excel annuel</button>
-      <p class="small">L’année affichée : 12 onglets mensuels et un total annuel, toutes tournées confondues.</p>
+      <p class="small">L’année affichée : 12 onglets mensuels, un total annuel et les graphiques, toutes tournées confondues.</p>
     </section>
   </aside>
 </main>
@@ -864,10 +864,10 @@ $("workDayOverlay").addEventListener("click", e => {
 });
 
 </script>
-<script src="finance-core.js"></script>
-<script src="finance-charts.js"></script>
-<script src="calendrier-finances.js"></script>
-<script src="cotisations.js"></script>
+<script src="finance-core.js?v=20261007-2"></script>
+<script src="finance-charts.js?v=20261007-2"></script>
+<script src="calendrier-finances.js?v=20261007-2"></script>
+<script src="cotisations.js?v=20261007-2"></script>
 <script>init();</script>
 </body>
 </html>
