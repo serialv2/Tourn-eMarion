@@ -116,7 +116,7 @@
     text(annual,'A34','CARPIMKO estimée lors de l’export');cash(annual,'B34',output.carpimko);
     const categoryTotal = category => `SUM(${months.map(m=>`'${m}'!B${13+categories.indexOf(category)}`).join(',')})`;
     const excluded = ['Prélèvement salaire','Cotisations','URSSAF','CARPIMKO'].map(categoryTotal).join('+');
-    const valid = `AND(ROUND(B29,2)=ROUND(B5,2),ROUND(B30,2)=ROUND(B6-(${excluded}),2))`;
+    const valid = `AND(ROUND(B29,2)=ROUND(B5,2),ROUND(B30,2)=ROUND(B6+B8-(${excluded}),2))`;
     text(annual,'A32','Validité des données de l’estimation');
     text(annual,'B32',{formula:`IF(${valid},"À jour","Réexporter le classeur")`,result:'À jour'});
     note(annual,35,'Montants calculés à l’export. Si les recettes ou frais changent, réexporter pour actualiser l’estimation. La moyenne mensuelle est une provision indicative, pas un appel de cotisations.');
