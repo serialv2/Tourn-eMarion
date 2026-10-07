@@ -65,6 +65,12 @@
       cell.value = { formula, result };
       cell.numFmt = euro;
     }
+    function percentage(sheet, address, numerator, denominator, value, revenue) {
+      const cell = sheet.getCell(address);
+      cell.value = { formula: `IF(${denominator}=0,"—",${numerator}/${denominator})`, result: revenue === 0 ? '—' : value / revenue };
+      cell.numFmt = '0.0%';
+      cell.alignment = { horizontal: 'right', vertical: 'middle' };
+    }
     function heading(sheet, row, values) {
       sheet.getRow(row).values = values;
       sheet.getRow(row).height = 25;
@@ -72,7 +78,7 @@
         const cell = sheet.getCell(row, i + 1);
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1769AA' } };
         cell.font = { name: 'Arial', size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
-        cell.alignment = { horizontal: 'center', vertical: 'middle' };
+        cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
       });
     }
     function finish(sheet) {
@@ -89,6 +95,8 @@
       const work = workDays.filter(x => x.work_date.slice(0, 7) === key).sort((a,b) => a.work_date.localeCompare(b.work_date));
       const costs = expenses.filter(x => x.expense_date.slice(0, 7) === key).sort((a,b) => a.expense_date.localeCompare(b.expense_date));
       const total = summary(work, costs);
+      total.remuneration = sum(costs.filter(x => x.category === 'Prélèvement salaire'), 'amount');
+      total.otherExpenses = Math.round((total.deductions - total.remuneration) * 100) / 100;
       totals.push(total);
       const sheet = setup(months[m], `${months[m]} ${year}`);
       sheet.getCell('A5').value = 'Chiffre d’affaires';
@@ -96,7 +104,7 @@
       sheet.getCell('A7').value = 'Résultat mensuel';
       sheet.getCell('A9').value = 'CA des journées saisies, payées ou non.';
       sheet.getCell('A10').value = 'Résultat = CA − dépenses, salaire inclus.';
-      heading(sheet, 12, ['Catégorie', 'Montant à déduire']);
+      heading(sheet, 12, ['Catégorie', 'Montant à déduire', '% du CA du mois']);
       categories.forEach((category, i) => { sheet.getCell(i + 13, 1).value = category; });
       const expenseHeader = 13 + categories.length + 2;
       heading(sheet, expenseHeader, ['Date', 'Catégorie', 'Libellé', 'Dépense (€)']);
@@ -111,7 +119,9 @@
       const expenseEnd = expenseStart + Math.max(costs.length, 1) - 1;
       if (!costs.length) sheet.getCell(expenseStart, 3).value = 'Aucune dépense enregistrée';
       categories.forEach((category, i) => {
-        formula(sheet, `B${13 + i}`, `SUMIF(B${expenseStart}:B${expenseEnd},A${13 + i},D${expenseStart}:D${expenseEnd})`, sum(costs.filter(x => x.category === category), 'amount'));
+        const amount = sum(costs.filter(x => x.category === category), 'amount');
+        formula(sheet, `B${13 + i}`, `SUMIF(B${expenseStart}:B${expenseEnd},A${13 + i},D${expenseStart}:D${expenseEnd})`, amount);
+        percentage(sheet, `C${13+i}`, `B${13+i}`, '$B$5', amount, total.revenue);
       });
       const workHeader = expenseEnd + 3;
       heading(sheet, workHeader, ['Date', 'Tournée', 'Paiement', 'Chiffre d’affaires (€)']);
@@ -127,25 +137,51 @@
       formula(sheet, 'B5', `SUM(D${workStart}:D${workEnd})`, total.revenue);
       formula(sheet, 'B6', `SUM(D${expenseStart}:D${expenseEnd})`, total.deductions);
       formula(sheet, 'B7', 'B5-B6', total.result);
+      sheet.getCell('C4').value = '% du CA du mois';
+      percentage(sheet, 'C6', 'B6', '$B$5', total.deductions, total.revenue);
+      sheet.mergeCells('A24:D24');
+      sheet.getCell('A24').value = '— : pourcentage non calculable lorsque le CA est nul.';
+      sheet.getCell('A24').font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF667085' } };
       ['A7','B7'].forEach(a => { sheet.getCell(a).font = { name: 'Arial', size: 12, bold: true }; sheet.getCell(a).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE8F5E9' } }; });
       sheet.views = [{ showGridLines: false, state: 'frozen', ySplit: 7 }];
       finish(sheet);
     }
     const annual = setup('Total annuel', `Bilan annuel ${year}`);
     annual.getCell('A5').value = 'Chiffre d’affaires annuel';
-    annual.getCell('A6').value = 'Dépenses et prélèvements annuels';
+    annual.columns = [{width:42},{width:24},{width:24},{width:18},{width:24},{width:18},{width:24}];
+    annual.getCell('A6').value = 'Dépenses hors rémunération';
     annual.getCell('A7').value = 'Résultat annuel';
-    heading(annual, 10, ['Mois', 'Chiffre d’affaires (€)', 'Dépenses et prélèvements (€)', 'Résultat (€)']);
+    annual.getCell('A8').value = 'Rémunération (prélèvements salaire)';
+    annual.getCell('C4').value = '% du CA annuel';
+    heading(annual, 10, ['Mois', 'Chiffre d’affaires (€)', 'Rémunération (€)', 'Rémunération / CA', 'Dépenses hors rémunération (€)', 'Dépenses / CA', 'Résultat (€)']);
+    annual.getRow(10).height = 44;
     months.forEach((month, i) => {
       const r = i + 11;
       annual.getCell(r, 1).value = month;
-      ['B5','B6','B7'].forEach((address, j) => formula(annual, `${String.fromCharCode(66+j)}${r}`, `'${month}'!${address}`, [totals[i].revenue,totals[i].deductions,totals[i].result][j]));
+      const t = totals[i];
+      formula(annual, `B${r}`, `'${month}'!B5`, t.revenue);
+      formula(annual, `C${r}`, `'${month}'!B${13+categories.indexOf('Prélèvement salaire')}`, t.remuneration);
+      percentage(annual, `D${r}`, `C${r}`, `B${r}`, t.remuneration, t.revenue);
+      formula(annual, `E${r}`, `'${month}'!B6-C${r}`, t.otherExpenses);
+      percentage(annual, `F${r}`, `E${r}`, `B${r}`, t.otherExpenses, t.revenue);
+      formula(annual, `G${r}`, `B${r}-C${r}-E${r}`, t.result);
     });
     annual.getCell('A23').value = 'Total des 12 mois';
-    ['B','C','D'].forEach((col, i) => formula(annual, col+'23', `SUM(${col}11:${col}22)`, Math.round(totals.reduce((s,t) => s + [t.revenue,t.deductions,t.result][i] * 100,0)) / 100));
-    formula(annual, 'B5', 'B23', annual.getCell('B23').value.result);
-    formula(annual, 'B6', 'C23', annual.getCell('C23').value.result);
-    formula(annual, 'B7', 'B5-B6', annual.getCell('D23').value.result);
+    ['B','C','E','G'].forEach((col, i) => formula(annual, col+'23', `SUM(${col}11:${col}22)`, Math.round(totals.reduce((s,t) => s + [t.revenue,t.remuneration,t.otherExpenses,t.result][i] * 100,0)) / 100));
+    const annualRevenue = annual.getCell('B23').result ?? 0;
+    const remuneration = annual.getCell('C23').result ?? 0;
+    const otherExpenses = annual.getCell('E23').result ?? 0;
+    percentage(annual, 'D23', 'C23', 'B23', remuneration, annualRevenue);
+    percentage(annual, 'F23', 'E23', 'B23', otherExpenses, annualRevenue);
+    formula(annual, 'B5', 'B23', annualRevenue);
+    formula(annual, 'B6', 'E23', otherExpenses);
+    formula(annual, 'B8', 'C23', remuneration);
+    formula(annual, 'B7', 'B5-B6-B8', annual.getCell('G23').result ?? 0);
+    percentage(annual, 'C6', 'B6', '$B$5', otherExpenses, annualRevenue);
+    percentage(annual, 'C8', 'B8', '$B$5', remuneration, annualRevenue);
+    annual.mergeCells('A24:G24');
+    annual.getCell('A24').value = 'Résultat = CA − rémunération − autres dépenses. — : CA nul. Le total des % est calculé sur le CA annuel.';
+    annual.getCell('A24').font = { name: 'Arial', size: 10, italic: true, color: { argb: 'FF667085' } };
     annual.getRow(23).font = { name: 'Arial', size: 11, bold: true };
     finish(annual);
     book.views = [{ activeTab: 12 }];

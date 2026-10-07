@@ -53,8 +53,28 @@ test('13 onglets, limites annuelles, formules, centimes et textes non exécutabl
   assert.equal(reopened.getWorksheet('Février').getCell('B7').result,0);
   const annual = reopened.getWorksheet('Total annuel');
   assert.equal(annual.getCell('B5').result,550.3);
-  assert.equal(annual.getCell('B6').result,680.3);
+  assert.equal(annual.getCell('B6').result,80.3);
+  assert.equal(annual.getCell('B8').result,600);
   assert.equal(annual.getCell('B7').result,-130);
   assert.equal(annual.getCell('B11').formula,"'Janvier'!B5");
-  assert.equal(annual.getCell('D23').formula,'SUM(D11:D22)');
+  assert.equal(annual.getCell('G23').formula,'SUM(G11:G22)');
+  assert.equal(annual.getCell('D23').result,600/550.3);
+  assert.equal(annual.getCell('F23').result,80.3/550.3);
+  assert.equal(jan.getCell('C13').result,600/500.3);
+  assert.equal(jan.getCell('C14').result,60.25/500.3);
+  assert.equal(reopened.getWorksheet('Février').getCell('C13').result,'—');
+});
+
+test('pourcentages sans CA : indéfinis même avec des dépenses, sans division par zéro', () => {
+  const book = F.buildWorkbook(ExcelJS,2026,[],[
+    {expense_date:'2026-09-01',category:'Prélèvement salaire',label:'Personnel',amount:2900},
+    {expense_date:'2026-09-01',category:'Essence',label:'Plein',amount:100}
+  ],[]);
+  const month=book.getWorksheet('Septembre'), annual=book.getWorksheet('Total annuel');
+  assert.equal(month.getCell('C13').result,'—');
+  assert.equal(month.getCell('C14').result,'—');
+  assert.equal(annual.getCell('D19').result,'—');
+  assert.equal(annual.getCell('F23').result,'—');
+  assert.equal(annual.getCell('B7').result,-3000);
+  assert.equal(annual.getCell('D23').formula,'IF(B23=0,"—",C23/B23)');
 });

@@ -99,3 +99,13 @@ L’icône « Marion » ouvre les tournées ; le calendrier reste accessible dep
 Une connexion Internet reste nécessaire. Aucun changement de base de données requis.
 Les fichiers manifest.webmanifest, install-app.js, install-app.css et le dossier icons
 doivent être publiés avec les pages HTML. Pas de cache hors ligne ni de service worker.
+
+PRÉSENTATION DE L’EXPORT EXCEL
+
+Le bilan annuel sépare les prélèvements salaire (rémunération) des autres dépenses.
+Chaque montant est accompagné de sa part du chiffre d’affaires. Pour chaque mois,
+le pourcentage utilise le CA de ce mois ; le total utilise le CA annuel, sans faire
+la moyenne des pourcentages mensuels. Les feuilles mensuelles affichent également
+le pourcentage par catégorie. Un tiret indique que le CA est nul et que le ratio
+ne peut pas être calculé. Les pourcentages peuvent dépasser 100 %.
+Réexporter depuis le calendrier pour obtenir cette présentation.
