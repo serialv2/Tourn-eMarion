@@ -161,9 +161,10 @@ async function exportAnnualExcel() {
       contributions = {error:error.name === 'AbortError' ? 'Le simulateur URSSAF ne répond pas. Réexporter plus tard.' : error.message};
     }
     MarionCotisations.appendWorkbook(workbook,year,contributionDefaults,contributions,Finance.categories,Finance.months);
-    const chartPlan = MarionCharts.appendWorkbook(workbook,year,work,allTours,Finance);
+    const Charts = await loadChartModule();
+    const chartPlan = Charts.appendWorkbook(workbook,year,work,allTours,Finance);
     const JSZip = await loadChartLibrary();
-    const bytes = await MarionCharts.writeBuffer(workbook,chartPlan,JSZip);
+    const bytes = await Charts.writeBuffer(workbook,chartPlan,JSZip);
     const url = URL.createObjectURL(new Blob([bytes], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
     const a = document.createElement('a'); a.href = url; a.download = `Tournee_Marion_${year}.xlsx`;
     document.body.append(a); a.click(); a.remove();
@@ -171,6 +172,20 @@ async function exportAnnualExcel() {
     financeStatus('Fichier Excel ' + year + ' téléchargé : 12 mois, total annuel et graphiques.' + (contributions.error ? ' Estimation sociale indisponible : voir le classeur.' : ''));
   } catch(error) { financeStatus('Export annulé : ' + expenseError(error), true); }
   finally { button.disabled = false; }
+}
+let chartModuleLoading;
+function loadChartModule() {
+  if (window.MarionCharts) return Promise.resolve(window.MarionCharts);
+  if (chartModuleLoading) return chartModuleLoading;
+  chartModuleLoading = new Promise((resolve,reject)=>{
+    const script=document.createElement('script');
+    script.src=new URL('finance-charts.js?v=20261007-2',document.baseURI).href;
+    const fail=()=>{clearTimeout(timer);script.remove();chartModuleLoading=null;reject(new Error('Le module des graphiques ne peut pas être chargé. Vérifie la connexion puis réessaie.'));};
+    const timer=setTimeout(fail,20000);
+    script.onload=()=>{if(!window.MarionCharts)return fail();clearTimeout(timer);resolve(window.MarionCharts);};
+    script.onerror=fail;document.head.append(script);
+  });
+  return chartModuleLoading;
 }
 let chartLibraryLoading;
 function loadChartLibrary() {
